@@ -119,5 +119,63 @@ describe('VillageNft', () => {
       });
     });
   });
+
+  describe('Building placement', () => {
+    let villageId: number;
+
+    beforeEach(async () => {
+      const result = await villageNft.connect(alice).createVillage(villageName, 0, 0);
+      const receipt = await result.wait();
+      villageId = receipt.events.filter((x: any) => x.event === 'NewVillage')[0].args.villageId.toNumber();
+    })
+
+    it('should place a building at 0, 0', async () => {
+      const result = await villageNft.connect(alice).placeBuilding(villageId, 0, 0, 0);
+      const receipt = await result.wait();
+      expect(receipt.status).to.eql(1);
+      expect(receipt.events[0].event).to.eql('NewBuilding');
+    });
+
+    it('should place a building at different coordinates', async () => {
+      const result = await villageNft.connect(alice).placeBuilding(villageId, 0, 1, 1);
+      const receipt = await result.wait();
+      expect(receipt.status).to.eql(1);
+      expect(receipt.events[0].event).to.eql('NewBuilding');
+    });
+
+    it('should place a building at the edge of a larger village', async () => {
+      // TODO: Set building size to >5 and put building at the edge
+      const result = await villageNft.connect(alice).placeBuilding(villageId, 0, 2, 2);
+      const receipt = await result.wait();
+      expect(receipt.status).to.eql(1);
+      expect(receipt.events[0].event).to.eql('NewBuilding');
+    });
+
+    it('should not allow placement of a building on a village belonging to someone else', async () => {
+      const txn = villageNft.connect(bob).placeBuilding(villageId, 0, 2, 2);
+      await expect(txn).to.be.revertedWith('Not the owner of the village');
+    });
+
+    it('should not allow placement of a building on coordinates larger than the village size', async () => {
+      const txn = villageNft.connect(alice).placeBuilding(villageId, 0, 6, 6);
+      await expect(txn).to.be.revertedWith('New placement out of bounds for village size');
+    });
+
+    it('should not allow placement of a building that would partly sit outside the village', async () => {
+      const txn = villageNft.connect(alice).placeBuilding(villageId, 0, 3, 2);
+      await expect(txn).to.be.revertedWith('New placement out of bounds for village size');
+    });
+
+    it('should not allow placement of two overlapping buildings', async () => {
+      const result = await villageNft.connect(alice).placeBuilding(villageId, 0, 0, 0);
+      const receipt = await result.wait();
+      expect(receipt.status).to.eql(1);
+      expect(receipt.events[0].event).to.eql('NewBuilding');
+
+      const txn = villageNft.connect(alice).placeBuilding(villageId, 0, 1, 2);
+      await expect(txn).to.be.revertedWith('Clashes with existing building');
+    });
+
+  });
   
 });

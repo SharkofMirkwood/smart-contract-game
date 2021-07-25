@@ -87,6 +87,7 @@ contract VillageGame is Ownable {
 
     function setMapSize(uint _mapSize) external onlyOwner {
         require(_mapSize > mapSize, 'New map size must be bigger than old map size');
+        // TODO: Check 'payment'
         mapSize = _mapSize;
     }
 
@@ -95,12 +96,14 @@ contract VillageGame is Ownable {
         // Make sure the building doesn't already exist
         require(_getBuildingLevel(_villageId, _buildingType) == 0, 'This type of building has already been built');
         uint8 size = buildingSizes[_buildingType];
+        // Make sure the building size was correctly retrieved
+        require(size > 0, 'Error, invalid building size. Check building type parameter.');
         // Make sure we are not out of bounds
         require(_x + size <= village.size, 'New placement out of bounds for village size');
         require(_y + size <= village.size, 'New placement out of bounds for village size');
         // Make sure we don't clash with any other buildings. `size` should be low enough (~1 to 3) that the iteration here hopefully won't be a problem
         for (uint8 i = _x; i < _x + size; i++) {
-            for (uint8 j = _y; i < _y + size; j++) {
+            for (uint8 j = _y; j < _y + size; j++) {
                 // For each of the tiles, check another building doesn't already cover it
                 for (uint8 k = 0; k < village.buildings.length; k++) {
                     BuildingPlacement storage building = village.buildings[k];

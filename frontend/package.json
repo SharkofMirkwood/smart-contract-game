@@ -14,6 +14,7 @@
     "core-js": "^3.6.5",
     "vue": "^2.6.14",
     "vue-class-component": "^7.2.3",
+    "vue-easeljs": "^0.1.14",
     "vue-property-decorator": "^9.1.2",
     "vue-router": "^3.2.0",
     "vuex": "^3.4.0"
@@ -21,6 +22,7 @@
   "devDependencies": {
     "@types/chai": "^4.2.11",
     "@types/mocha": "^5.2.4",
+    "@types/node": "^16.4.8",
     "@typescript-eslint/eslint-plugin": "^4.18.0",
     "@typescript-eslint/parser": "^4.18.0",
     "@vue/cli-plugin-babel": "~4.5.0",
@@ -55,7 +57,11 @@
     "parserOptions": {
       "ecmaVersion": 2020
     },
-    "rules": {},
+    "rules": {
+      "max-len": 1,
+      "global-require": 0,
+      "class-methods-use-this": 0
+    },
     "overrides": [
       {
         "files": [

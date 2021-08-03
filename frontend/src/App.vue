@@ -32,3 +32,21 @@
   }
 }
 </style>
+
+<script lang="ts">
+import {
+  Component, Prop, Provide, Vue,
+} from 'vue-property-decorator';
+
+@Component({
+  components: { },
+})
+export default class Village extends Vue {
+  @Prop() private villageId!: string;
+
+  beforeCreate() {
+    console.log('registerWeb3 Action dispatched from App.vue');
+    this.$store.dispatch('registerWeb3');
+  }
+}
+</script>

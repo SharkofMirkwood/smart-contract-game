@@ -2,8 +2,6 @@
   <div class="home">
     <div>VILLAGE {{ villageId }}</div>
 
-    <!-- <canvas ref="my-canvas" @mousemove="mouseMove" @click="click"></canvas> -->
-
     <div class="village-container">
       <village-tile
           v-for="(obj, index) of tiles"
@@ -62,46 +60,29 @@ import VillageBuilding from '../components/VillageBuilding.vue';
 export default class Village extends Vue {
   @Prop() private villageId!: string;
 
-  @Provide('provider') provider: { context?: CanvasRenderingContext2D } = {
-    context: null,
-  };
-
-  provide() {
-    return {
-      provider: this.provider,
-    };
-  }
+  villageSize = 6;
 
   keyCounter = 1;
 
-  tileWidth = 20;
+  tileWidth = 100 / this.villageSize;
 
-  tileHeight = 20;
+  tileHeight = 100 / this.villageSize;
 
-  startX = 40;
+  startX = 50 - this.tileWidth / 2;
 
   startY = 20;
 
-  tiles = [
-    { x: 0, y: 0, color: 'red' },
-    { x: 0, y: 1, color: 'green' },
-    { x: 0, y: 2, color: 'green' },
-    { x: 0, y: 3, color: 'green' },
-    { x: 1, y: 0, color: 'blue' },
-    { x: 1, y: 1, color: 'black' },
-    { x: 1, y: 2, color: 'black' },
-    { x: 1, y: 3, color: 'black' },
-    { x: 2, y: 0, color: 'black' },
-    { x: 2, y: 1, color: 'black' },
-    { x: 2, y: 2, color: 'black' },
-    { x: 2, y: 3, color: 'black' },
-    { x: 3, y: 0, color: 'black' },
-    { x: 3, y: 1, color: 'black' },
-    { x: 3, y: 2, color: 'black' },
-    { x: 3, y: 3, color: 'black' },
-  ];
+  tiles = Array.from(new Array(this.villageSize)).reduce((acc, val1, index1) => ([...acc, ...Array.from(new Array(this.villageSize)).map((val2, index2) => ({ x: index1, y: index2 }))]), []);
+
+  // tiles = [
+  //   { x: 0, y: 0 },
+  //   { x: 0, y: 1 },
+  // ];
 
   buildings = [
+    {
+      x: 0, y: 0, width: 2, height: 2, color: 'red', imageSrc: require('@/assets/map/castlekeep_13.png'),
+    },
     {
       x: 0, y: 0, width: 2, height: 2, color: 'red', imageSrc: require('@/assets/map/castlekeep_13.png'),
     },
@@ -109,20 +90,6 @@ export default class Village extends Vue {
       x: 2, y: 2, width: 2, height: 2, color: 'red', imageSrc: require('@/assets/map/chapel_01a.png'),
     },
   ];
-
-  // mounted(): void {
-  //   const canvas = this.$refs['my-canvas'] as HTMLCanvasElement;
-  //   this.provider.context = canvas.getContext('2d');
-
-  //   console.log('this.provider', this.provider);
-
-  //   canvas.width = canvas.parentElement.clientWidth;
-  //   canvas.height = canvas.parentElement.clientHeight;
-  // }
-
-  mouseMove(e: MouseEvent): void {
-    // console.log('x, y', e.screenX, e.screenY);
-  }
 
   click() {
     console.log('click');
@@ -132,6 +99,7 @@ export default class Village extends Vue {
 
   tileClicked(x: number, y: number) {
     console.log('x, y', x, y);
+    console.log('xx', process.env);
   }
 }
 </script>

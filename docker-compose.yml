@@ -1,0 +1,21 @@
+version: "3.3"
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - 49001:8080
+    tty: true
+    environment: 
+      - TERM=xterm-256color`
+    volumes:
+      - ./frontend/src:/srv/src
+      - ./frontend/.env.local:/srv/.env.local
+      - /srv/node_modules
+  hardhat:
+    build: ./contracts
+    ports:
+      - 49000:8080
+    volumes:
+      - ./contracts/contracts:/srv/contracts
+      - ./contracts/artifacts:/srv/artifacts
+

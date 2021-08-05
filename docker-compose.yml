@@ -11,11 +11,33 @@ services:
       - ./frontend/src:/srv/src
       - ./frontend/.env.local:/srv/.env.local
       - /srv/node_modules
+
   hardhat:
     build: ./contracts
     ports:
-      - 49000:8080
+      - 49000:8545
     volumes:
       - ./contracts/contracts:/srv/contracts
       - ./contracts/artifacts:/srv/artifacts
+      - /srv/node_modules
+    # labels:
+    #   - traefik.enable=true
+    #   - traefik.http.routers.myapp.tls=true
+    #   - traefik.http.routers.myapp.rule=Host("hardhat.docker.localhost")
 
+  # traefik:
+  #   image: "traefik:v2.4"
+  #   container_name: "traefik"
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.traefik=true"
+  #   ports:
+  #     # HTTPS / SSL port
+  #     - "443:443"
+  #     # The Traefik Web UI port (enabled by api:insecure: true in traefik.yml)
+  #     - "8080:8080"
+  #   volumes:
+  #     - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+  #     - ./traefik/config.yml:/etc/traefik/config.yml:ro
+  #     - ./certs:/etc/certs:ro
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro

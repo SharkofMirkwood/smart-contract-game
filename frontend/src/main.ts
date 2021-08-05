@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
-import * as VueEaselJs from 'vue-easeljs';
 
 import Navbar from '@/components/Navbar.vue';
 import VillageTile from '@/components/VillageTile.vue';
@@ -15,7 +14,6 @@ import './style/app.scss';
 Vue.use(BootstrapVue);
 // Optionally install the BootstrapVue icon components plugin
 Vue.use(IconsPlugin);
-Vue.use(VueEaselJs);
 
 Vue.config.productionTip = false;
 

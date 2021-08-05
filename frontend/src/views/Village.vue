@@ -3,6 +3,7 @@
     <div>VILLAGE {{ villageId }}</div>
 
     <div class="village-container">
+      <div class="background" v-bind:style="{ 'min-height': `${tiles.length}%` }"></div>
       <village-tile
           v-for="(obj, index) of tiles"
           v-bind:key="index + 'tile' + keyCounter"
@@ -43,7 +44,13 @@
   position: relative;
   width: 100%;
   height: 100%;
-  background: green;
+  .background {
+    background-color: green;
+    padding-top: 65%;
+    position: absolute;
+    width: 100%;
+    margin-bottom: 20px;
+  }
 }
 </style>
 

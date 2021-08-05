@@ -10,6 +10,9 @@ export interface AppState {
   ethAddress: string;
 }
 
+const chainId = parseInt(process.env.VUE_APP_CHAIN_ID, 10);
+const chainIdHex = `0x${chainId.toString(16)}`; // chainId must be in hexadecimal numbers
+
 export default new Vuex.Store<AppState>({
   state: {
     web3Instance: null,
@@ -31,18 +34,30 @@ export default new Vuex.Store<AppState>({
     },
   },
   actions: {
-    registerWeb3: async ({ commit }) => {
+    registerWeb3: async ({ commit, dispatch }) => {
       console.log('registerWeb3 Action being executed');
-      const web3js = (window as any).ethereum;
-      if (typeof web3js === 'undefined') {
+      const { ethereum } = (window as any);
+      if (typeof ethereum === 'undefined') {
         console.error('Unable to connect to Metamask');
         return;
       }
-      const web3 = new Web3(web3js);
+      const web3 = new Web3(ethereum);
       commit('registerWeb3Instance', web3);
 
-      const coinbase = await web3.eth.getCoinbase();
-      if (coinbase) {
+      ethereum.on('accountsChanged', (accounts: any) => {
+        console.log('accountsChanges', accounts);
+        dispatch('requestEthAccounts');
+      });
+      ethereum.on('networkChanged', (networkId: number) => {
+        console.log('networkChanged', networkId);
+        // if (networkId !== chainId) {
+        //   window.location.reload();
+        // }
+      });
+
+      const [coinbase, currentChainId] = await Promise.all([web3.eth.getCoinbase(), web3.eth.net.getId()]);
+      if (coinbase && chainId === currentChainId) {
+        console.log('chainId', chainId);
         commit('ethAccountAccessed', true);
         commit('setEthAddress', coinbase);
       }
@@ -52,6 +67,27 @@ export default new Vuex.Store<AppState>({
       if (!web3) {
         console.error('Web3 not yet initialised');
         return;
+      }
+      const { ethereum } = (window as any);
+      try {
+        await ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: chainIdHex }],
+        });
+      } catch (e: any) {
+        if (e.code === 4902) {
+          await ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: chainIdHex,
+              chainName: process.env.VUE_APP_CHAIN_NAME,
+              rpcUrls: [`http://${process.env.VUE_APP_PROVIDER_ADDRESS}`],
+            }],
+          });
+        } else {
+          console.error(e);
+          throw e;
+        }
       }
       try {
         await web3.eth.requestAccounts();

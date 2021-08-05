@@ -11,6 +11,6 @@ RUN npm ci
 
 COPY contracts contracts
 
-EXPOSE 8080
+EXPOSE 8545
 
 ENTRYPOINT [ "./node_modules/.bin/hardhat", "node" ]

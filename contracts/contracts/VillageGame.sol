@@ -36,8 +36,10 @@ contract VillageGame is Ownable {
         uint8 size;
         uint8 baseGoldRate;
         uint32 readyToMineTime;
+        uint256 id;
         string name;
         BuildingPlacement[] buildings;
+        bool exists;
         // mapping (BuildingTypes => uint8) buildingLevels;
     }
 
@@ -68,12 +70,14 @@ contract VillageGame is Ownable {
         // We cannot use `villages.push(Village(...))` because the RHS creates a memory-struct "Village" that contains a mapping.
         villageId = villageCounter++;
         Village storage village = villages[villageId];
+        village.id = villageId;
         village.x = _x;
         village.y = _y;
         village.size = 5;
         village.baseGoldRate = 100;
         village.readyToMineTime = uint32(block.timestamp);
         village.name = _name;
+        village.exists = true;
 
         villageMap[_x][_y] = villageId;
         emit NewVillage(villageId, _name, _x, _y);
@@ -128,8 +132,9 @@ contract VillageGame is Ownable {
 
     }
 
-    function getVillage(uint _villageId) public view returns (Village memory) {
-        return villages[_villageId];
+    function getVillage(uint _villageId) public view returns (Village memory village) {
+        village = villages[_villageId];
+        require(village.exists == true, 'village ID does not exist');
     }
 
     // function mineGold(uint _villageId) external onlyOwnerOf(_villageId) {

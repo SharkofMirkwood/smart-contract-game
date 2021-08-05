@@ -1,6 +1,7 @@
 <template>
   <div class="home">
     <div>VILLAGE {{ villageId }}</div>
+    {{ tileHeight }}
 
     <div class="village-container">
       <div class="background" v-bind:style="{ 'min-height': `${tiles.length}%` }"></div>
@@ -56,32 +57,29 @@
 
 <script lang="ts">
 import {
-  Component, Prop, Provide, Vue,
+  Component, Prop, Provide, Vue, Watch,
 } from 'vue-property-decorator';
 import { Store } from 'vuex';
 import { AppState } from '../store';
 import VillageTile from '../components/VillageTile.vue';
 import VillageBuilding from '../components/VillageBuilding.vue';
+import { Village } from '../types';
 
 @Component({
   components: { VillageTile, VillageBuilding },
 })
-export default class Village extends Vue {
+export default class VillageView extends Vue {
   @Prop() private villageId!: string;
+
+  village: Village = null;
 
   villageSize = 6;
 
   keyCounter = 1;
 
-  tileWidth = 100 / this.villageSize;
-
-  tileHeight = 100 / this.villageSize;
-
-  startX = 50 - this.tileWidth / 2;
-
   startY = 20;
 
-  tiles = Array.from(new Array(this.villageSize)).reduce((acc, val1, index1) => ([...acc, ...Array.from(new Array(this.villageSize)).map((val2, index2) => ({ x: index1, y: index2 }))]), []);
+  // tiles: any[][];
 
   // tiles = [
   //   { x: 0, y: 0 },
@@ -106,6 +104,31 @@ export default class Village extends Vue {
     return this.$store.state.contract;
   }
 
+  get tileWidth() {
+    if (!this.village) {
+      return 0;
+    }
+    return 100 / this.village.size;
+  }
+
+  get tileHeight() {
+    if (!this.village) {
+      return 0;
+    }
+    return 100 / this.village.size;
+  }
+
+  get tiles() {
+    if (!this.village) {
+      return [];
+    }
+    return Array.from(new Array(this.village.size)).reduce((acc, val1, index1) => ([...acc, ...Array.from(new Array(this.village.size)).map((val2, index2) => ({ x: index1, y: index2 }))]), []);
+  }
+
+  get startX() {
+    return 50 - this.tileWidth / 2;
+  }
+
   click() {
     console.log('click');
     this.buildings = [this.buildings[1]];
@@ -114,13 +137,14 @@ export default class Village extends Vue {
 
   tileClicked(x: number, y: number) {
     console.log('x, y', x, y);
-    console.log('xx', process.env);
-    this.getVillage(1);
   }
 
-  async getVillage(villageId: number) {
+  @Watch('villageId', { immediate: true })
+  async getVillage(villageId: number): Promise<void> {
+    console.log('vid', villageId);
     const village = await this.contract.methods.getVillage(villageId).call();
-    console.log('village', village);
+    this.village = new Village(villageId, village);
+    console.log('village', this.village);
   }
 }
 </script>

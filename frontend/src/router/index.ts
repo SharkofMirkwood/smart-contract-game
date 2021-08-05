@@ -1,8 +1,8 @@
 import Vue from 'vue';
 import VueRouter, { RouteConfig } from 'vue-router';
 import Home from '../views/Home.vue';
-import Village from '../views/Village.vue';
-import CreateVillage from '../views/CreateVillage.vue';
+import VillageView from '../views/Village.vue';
+import MyVillages from '../views/MyVillages.vue';
 
 Vue.use(VueRouter);
 
@@ -15,13 +15,13 @@ const routes: Array<RouteConfig> = [
   {
     path: '/village/:villageId',
     name: 'view-village',
-    component: Village,
+    component: VillageView,
     props: true,
   },
   {
-    path: '/create',
-    name: 'create',
-    component: CreateVillage,
+    path: '/my-villages',
+    name: 'my-villages',
+    component: MyVillages,
   },
 ];
 

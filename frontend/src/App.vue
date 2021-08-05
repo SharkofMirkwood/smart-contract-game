@@ -2,8 +2,8 @@
   <div id="app">
     <Navbar />
     <b-container>
-      <b-aspect aspect="2">
-        <router-view/>
+      <b-aspect aspect="2" v-if="$store.state.contract">
+        <router-view />
       </b-aspect>
     </b-container>
   </div>
@@ -37,12 +37,16 @@
 import {
   Component, Prop, Provide, Vue,
 } from 'vue-property-decorator';
+import { Store } from 'vuex';
+import { AppState } from './store';
 
 @Component({
   components: { },
 })
-export default class Village extends Vue {
+export default class App extends Vue {
   @Prop() private villageId!: string;
+
+  $store: Store<AppState>;
 
   beforeCreate() {
     console.log('registerWeb3 Action dispatched from App.vue');

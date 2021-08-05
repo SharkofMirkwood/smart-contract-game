@@ -186,7 +186,7 @@ describe('VillageNft', () => {
       const receipt = await result.wait();
       villageId = receipt.events[0].args.villageId.toNumber();
       await villageNft.connect(alice).placeBuilding(villageId, 0, 0, 0);
-    })
+    });
 
     it('should be able to retrieve a village token that was created', async () => {
       const result = await villageNft.getVillage(villageId);
@@ -202,6 +202,62 @@ describe('VillageNft', () => {
       expect(result.buildings[0].size).to.eql(3);
       expect(result.buildings[0].level).to.eql(1);
       expect(result.buildings[0].buildingType).to.eql(0);
+    });
+
+    it('should error for a village that does not exist', async () => {
+      const txnBob = villageNft.getVillage(1000);
+      await expect(txnBob).to.be.revertedWith('village ID does not exist');
+    });
+
+  });
+
+  describe('balances & enumerability', () => {
+    beforeEach(async () => {
+      await villageNft.connect(alice).createVillage(`${villageName}1`, 0, 0);
+      await villageNft.connect(alice).createVillage(`${villageName}2`, 1, 1);
+    });
+
+    it('should return 0 tokens for a user who has not created any', async () => {
+      const result = await villageNft.balanceOf(bob.getAddress());
+      expect(result.toNumber()).to.eql(0);
+    });
+
+    it('should return the amount of tokens when a user owns some', async () => {
+      const result = await villageNft.balanceOf(alice.getAddress());
+      expect(result.toNumber()).to.eql(2);
+    });
+
+    it('should return the correct data for a token owner by a user', async () => {
+      const villageIds = await Promise.all([
+        villageNft.tokenOfOwnerByIndex(alice.getAddress(), 0),
+        villageNft.tokenOfOwnerByIndex(alice.getAddress(), 1),
+      ]);
+      const villages = await Promise.all([
+        villageNft.getVillage(villageIds[0]),
+        villageNft.getVillage(villageIds[1]),
+      ]);
+      expect(villages[0].x).to.eql(0);
+      expect(villages[0].y).to.eql(0);
+      expect(villages[0].name).to.eql(`${villageName}1`);
+      expect(villages[1].x).to.eql(1);
+      expect(villages[1].y).to.eql(1);
+      expect(villages[1].name).to.eql(`${villageName}2`);
+    });
+
+    it('should throw an error trying to access an index out of bounds', async () => {
+      const txn = villageNft.tokenOfOwnerByIndex(alice.getAddress(), 2);
+      await expect(txn).to.be.revertedWith('ERC721Enumerable: owner index out of bounds');
+    });
+
+    it('should return the correct amount for each user after a transfer', async () => {
+      const villageId = await villageNft.tokenOfOwnerByIndex(alice.getAddress(), 1)
+      await villageNft.connect(alice).transferFrom(alice.getAddress(), bob.getAddress(), villageId);
+      const [aliceBalance, bobBalance] = await Promise.all([
+        villageNft.balanceOf(alice.getAddress()),
+        villageNft.balanceOf(bob.getAddress()),
+      ]);
+      expect(aliceBalance.toNumber()).to.eql(1);
+      expect(bobBalance.toNumber()).to.eql(1);
     });
 
   });

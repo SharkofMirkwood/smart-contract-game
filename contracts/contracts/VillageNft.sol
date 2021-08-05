@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import '@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
 import './VillageGame.sol';
 import 'hardhat/console.sol';
 
-contract VillageNft is VillageGame, ERC721 {
+contract VillageNft is VillageGame, ERC721Enumerable {
 
     modifier onlyOwnerOf(uint _villageId) {
         // require(msg.sender == _owners[_villageId], 'Not the owner of the village!');

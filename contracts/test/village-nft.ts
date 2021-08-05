@@ -177,5 +177,33 @@ describe('VillageNft', () => {
     });
 
   });
+
+  describe('get village', () => {
+    let villageId: number;
+
+    beforeEach(async () => {
+      const result = await villageNft.connect(alice).createVillage(villageName, 0, 0);
+      const receipt = await result.wait();
+      villageId = receipt.events[0].args.villageId.toNumber();
+      await villageNft.connect(alice).placeBuilding(villageId, 0, 0, 0);
+    })
+
+    it('should be able to retrieve a village token that was created', async () => {
+      const result = await villageNft.getVillage(villageId);
+
+      expect(result.x).to.eql(0);
+      expect(result.y).to.eql(0);
+      expect(result.size).to.eql(5);
+      expect(result.baseGoldRate).to.eql(100);
+      expect(result.name).to.eql(villageName);
+      expect(result.buildings).to.have.length(1);
+      expect(result.buildings[0].x).to.eql(0);
+      expect(result.buildings[0].y).to.eql(0);
+      expect(result.buildings[0].size).to.eql(3);
+      expect(result.buildings[0].level).to.eql(1);
+      expect(result.buildings[0].buildingType).to.eql(0);
+    });
+
+  });
   
 });

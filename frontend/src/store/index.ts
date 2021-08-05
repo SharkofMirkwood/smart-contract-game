@@ -1,6 +1,8 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import Web3 from 'web3';
+import { Contract as Web3Contract } from 'web3-eth-contract';
+import * as contractAbi from '../contracts/VillageNft.sol/VillageNft.json';
 
 Vue.use(Vuex);
 
@@ -8,6 +10,7 @@ export interface AppState {
   web3Instance: Web3;
   ethAccountAccessed: boolean;
   ethAddress: string;
+  contract: Web3Contract;
 }
 
 const chainId = parseInt(process.env.VUE_APP_CHAIN_ID, 10);
@@ -18,6 +21,7 @@ export default new Vuex.Store<AppState>({
     web3Instance: null,
     ethAccountAccessed: null,
     ethAddress: null,
+    contract: null,
   },
   mutations: {
     registerWeb3Instance: (state, payload) => {
@@ -31,6 +35,10 @@ export default new Vuex.Store<AppState>({
     setEthAddress: (state, payload) => {
       console.log('setEthAddress Mutation being executed', payload);
       state.ethAddress = payload;
+    },
+    setContract: (state, payload) => {
+      console.log('setContract Mutation being executed', payload);
+      state.contract = payload;
     },
   },
   actions: {
@@ -61,6 +69,7 @@ export default new Vuex.Store<AppState>({
         commit('ethAccountAccessed', true);
         commit('setEthAddress', coinbase);
       }
+      dispatch('initialiseContract');
     },
     requestEthAccounts: async ({ commit, state }) => {
       const web3 = state.web3Instance;
@@ -98,6 +107,15 @@ export default new Vuex.Store<AppState>({
       } catch (e: any) {
         console.error(e);
       }
+    },
+    initialiseContract: async ({ commit, state }) => {
+      const web3 = state.web3Instance;
+      if (!web3) {
+        console.error('Web3 not yet initialised');
+        return;
+      }
+      const contract = new web3.eth.Contract((contractAbi.abi as any), process.env.VUE_APP_CONTRACT_ADDRESS);
+      commit('setContract', contract);
     },
   },
   modules: {

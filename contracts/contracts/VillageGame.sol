@@ -128,6 +128,10 @@ contract VillageGame is Ownable {
 
     }
 
+    function getVillage(uint _villageId) public view returns (Village memory) {
+        return villages[_villageId];
+    }
+
     // function mineGold(uint _villageId) external onlyOwnerOf(_villageId) {
     //     Village storage village = villages[_villageId];
     //     require(_getBuildingLevel(_villageId, BuildingTypes.GoldMine) > 0, 'Gold mine not yet built');

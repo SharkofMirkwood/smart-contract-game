@@ -58,6 +58,8 @@
 import {
   Component, Prop, Provide, Vue,
 } from 'vue-property-decorator';
+import { Store } from 'vuex';
+import { AppState } from '../store';
 import VillageTile from '../components/VillageTile.vue';
 import VillageBuilding from '../components/VillageBuilding.vue';
 
@@ -98,6 +100,12 @@ export default class Village extends Vue {
     },
   ];
 
+  $store: Store<AppState>;
+
+  get contract() {
+    return this.$store.state.contract;
+  }
+
   click() {
     console.log('click');
     this.buildings = [this.buildings[1]];
@@ -107,6 +115,12 @@ export default class Village extends Vue {
   tileClicked(x: number, y: number) {
     console.log('x, y', x, y);
     console.log('xx', process.env);
+    this.getVillage(1);
+  }
+
+  async getVillage(villageId: number) {
+    const village = await this.contract.methods.getVillage(villageId).call();
+    console.log('village', village);
   }
 }
 </script>

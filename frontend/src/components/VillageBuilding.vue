@@ -3,8 +3,8 @@
 <div
   class="village-building"
   v-bind:style="{ left: calculatedBox.x + '%', top: calculatedBox.y + '%', width: calculatedBox.w + '%', height: calculatedBox.h + '%' }"
-  v-bind:class="{ hover: isMouseOver }">
-  <img :src="imageSrc" />
+  v-bind:class="{ hover: isMouseOver, wall: isWall }">
+  <img :src="imageSrc" v-bind:style="imgStyle" />
   <div class="clicker" @mouseover="isMouseOver = true" @mouseleave="isMouseOver = false"></div>
 </div>
 
@@ -20,7 +20,7 @@
     width: 90%;
     // height: 100%;
     position: absolute;
-    bottom: 0px;
+    bottom: 5%;
     left: 5%;
     z-index: 200;
     // border: 1px solid black;
@@ -45,6 +45,14 @@
     img {
       filter: drop-shadow(1px 0px 7px black);
       // z-index: 250;
+    }
+  }
+
+  &.wall {
+    img {
+      width: 54%;
+      left: 5%;
+      height: auto;
     }
   }
 }
@@ -77,6 +85,10 @@ export default class VillageTile extends Vue {
 
   @Prop() imageSrc: string;
 
+  @Prop() pos: string;
+
+  @Prop({ default: false }) isWall: boolean;
+
   private isMouseOver = false;
 
   get calculatedBox() {
@@ -90,5 +102,15 @@ export default class VillageTile extends Vue {
       h: this.height * this.tileHeight,
     };
   }
+
+  // get imgStyle() {
+  //   if (!this.isWall) {
+  //     return {};
+  //   }
+  //   switch (this.pos) {
+  //     case 'top':
+  //       return {}
+  //   }
+  // }
 }
 </script>

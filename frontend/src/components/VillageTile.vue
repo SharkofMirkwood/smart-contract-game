@@ -3,9 +3,9 @@
 <div
   class="village-tile"
   v-bind:style="{ left: calculatedBox.x + '%', top: calculatedBox.y + '%', width: calculatedBox.w + '%', height: calculatedBox.h + '%' }"
-  v-bind:class="{ hover: isMouseOver }">
+  v-bind:class="{ hover: highlighted, 'has-building': hasBuilding, 'out-of-bounds': outOfBounds, 'cannot-be-placed': !canBePlaced }">
   <img :src="require('@/assets/map/backgrounds/ground_01.png')" />
-  <div class="clicker" @click="$emit('on-click', x, y)" @mouseover="isMouseOver = true" @mouseleave="isMouseOver = false"></div>
+  <div class="clicker" @click="onClick()" @mouseover="onMouseOver()" @mouseleave="onMouseLeave()"></div>
 </div>
 
 </template>
@@ -36,14 +36,31 @@
     transform-style: preserve-3d;
     transform-origin: top left;
     pointer-events: all;
-    cursor: pointer;
   }
   &.hover {
     // opacity: 0.8;
 
+    .clicker {
+      cursor: pointer;
+    }
+
+    &.cannot-be-placed {
+      .clicker {
+        cursor: auto;
+      }
+    }
+
     img {
-      filter: drop-shadow(1px 0px 7px black);
+      // filter: drop-shadow(1px 0px 7px black);
+      filter: drop-shadow(1px 0px 7px black) saturate(100%) hue-rotate(20deg);
+
       z-index: 100;
+    }
+
+    &.has-building, &.out-of-bounds {
+      img {
+        filter: drop-shadow(1px 0px 7px black) saturate(100%) hue-rotate(300deg);
+      }
     }
   }
 }
@@ -51,7 +68,7 @@
 
 <script lang="ts">
 import {
-  Component, Inject, Prop, Vue,
+  Component, Prop, Vue,
 } from 'vue-property-decorator';
 
 @Component
@@ -68,9 +85,13 @@ export default class VillageTile extends Vue {
 
   @Prop() height: number;
 
-  @Prop() color: string;
+  @Prop() highlighted: boolean;
 
-  private isMouseOver = false;
+  @Prop() hasBuilding: boolean;
+
+  @Prop() outOfBounds: boolean;
+
+  @Prop() canBePlaced: boolean;
 
   get calculatedBox() {
     const x = this.startX - (this.x * this.width * 0.5) + (this.y * this.height * 0.5);
@@ -82,6 +103,20 @@ export default class VillageTile extends Vue {
       w: this.width,
       h: this.height,
     };
+  }
+
+  onMouseOver() {
+    this.$emit('on-mouse-over', this.x, this.y);
+  }
+
+  onMouseLeave() {
+    this.$emit('on-mouse-leave', this.x, this.y);
+  }
+
+  onClick() {
+    if (this.canBePlaced) {
+      this.$emit('on-click', this.x, this.y);
+    }
   }
 }
 </script>

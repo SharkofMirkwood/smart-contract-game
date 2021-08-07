@@ -1,46 +1,98 @@
 <template>
-  <div class="home">
-    <div>VILLAGE {{ villageId }}</div>
-    {{ tileHeight }}
 
-    <div class="village-container">
-      <div class="background" v-bind:style="{ 'min-height': `${tiles.length}%` }"></div>
-      <village-tile
-          v-for="(obj, index) of tiles"
-          v-bind:key="index + 'tile' + keyCounter"
-          :startX="startX"
-          :startY="startY"
-          :x="obj.x"
-          :y="obj.y"
-          :width="tileWidth"
-          :height="tileHeight"
-          :color="obj.color"
-          v-on:on-click="tileClicked"
-        >
-      </village-tile>
+  <div class="village-page">
+    <div v-if="!village">
+      Village not found!
+    </div>
+    <div class="village-outer-container" v-if="village">
+      <div>VILLAGE: {{ village.name }}</div>
 
-      <village-building
-          v-for="(obj, index) of buildings"
-          v-bind:key="index + 'building' + keyCounter"
-          :startX="startX"
-          :startY="startY"
-          :x="obj.x"
-          :y="obj.y"
-          :width="obj.width"
-          :height="obj.height"
-          :tileWidth="tileWidth"
-          :tileHeight="tileHeight"
-          :color="obj.color"
-          :imageSrc="obj.imageSrc"
-        >
-      </village-building>
+      <div>
+        <b-button @click="setCurrentlyPlacing(BuildingTypes.TownHall)">Town Hall</b-button>
+        <b-button @click="setCurrentlyPlacing(BuildingTypes.GoldMine)">Gold Mine</b-button>
+        <b-button @click="setCurrentlyPlacing(BuildingTypes.AdventurerHall)">Adventurer Hall</b-button>
+      </div>
 
+      <div class="village-container">
+        <div class="background" v-bind:style="{ 'min-height': `${tiles.length}%` }"></div>
+        <village-tile
+            v-for="(obj, index) of tiles"
+            v-bind:key="index + 'tile'"
+            :startX="startX"
+            :startY="startY"
+            :x="obj.x"
+            :y="obj.y"
+            :width="tileWidth"
+            :height="tileHeight"
+            :highlighted="isTileHighlighted(obj.x, obj.y)"
+            :hasBuilding="hasBuilding(obj.x, obj.y)"
+            :outOfBounds="currentTileOutOfBounds"
+            :canBePlaced="canBePlaced(obj.x, obj.y)"
+            v-on:on-click="tileClicked"
+            v-on:on-mouse-over="onMouseOverTile"
+            v-on:on-mouse-leave="onMouseLeaveTile"
+          >
+        </village-tile>
+
+        <village-building
+            v-for="(obj, index) of wallsBehind"
+            v-bind:key="index + 'wallbehind'"
+            :startX="startX"
+            :startY="startY"
+            :x="obj.x"
+            :y="obj.y"
+            :width="1"
+            :height="1"
+            :tileWidth="tileWidth"
+            :tileHeight="tileHeight"
+            :imageSrc="obj.image"
+            :isWall="true"
+          >
+        </village-building>
+        <village-building
+            v-for="(obj, index) of village.buildings"
+            v-bind:key="index + 'building'"
+            :startX="startX"
+            :startY="startY"
+            :x="obj.x"
+            :y="obj.y"
+            :width="obj.size"
+            :height="obj.size"
+            :tileWidth="tileWidth"
+            :tileHeight="tileHeight"
+            :imageSrc="obj.building.image"
+          >
+        </village-building>
+
+        <village-building
+            v-for="(obj, index) of wallsInFront"
+            v-bind:key="index + 'wallfront'"
+            :startX="startX"
+            :startY="startY"
+            :x="obj.x"
+            :y="obj.y"
+            :width="1"
+            :height="1"
+            :tileWidth="tileWidth"
+            :tileHeight="tileHeight"
+            :imageSrc="obj.image"
+            :isWall="true"
+          >
+        </village-building>
+
+      </div>
     </div>
 
   </div>
 </template>
 
 <style lang="scss">
+.village-page {
+  height: 100%;
+}
+.village-outer-container {
+  height: 100%;
+}
 .village-container {
   position: relative;
   width: 100%;
@@ -57,13 +109,16 @@
 
 <script lang="ts">
 import {
-  Component, Prop, Provide, Vue, Watch,
+  Component, Prop, Vue, Watch,
 } from 'vue-property-decorator';
 import { Store } from 'vuex';
+import { Contract as Web3Contract } from 'web3-eth-contract';
 import { AppState } from '../store';
 import VillageTile from '../components/VillageTile.vue';
 import VillageBuilding from '../components/VillageBuilding.vue';
-import { Village } from '../types';
+import {
+  buildings, BuildingTypes, IBuilding, Village,
+} from '../types';
 
 @Component({
   components: { VillageTile, VillageBuilding },
@@ -73,11 +128,15 @@ export default class VillageView extends Vue {
 
   village: Village = null;
 
-  villageSize = 6;
-
-  keyCounter = 1;
-
   startY = 20;
+
+  BuildingTypes = BuildingTypes;
+
+  currentlyPlacing: IBuilding = null;
+
+  mouseOverX: number = null;
+
+  mouseOverY: number = null;
 
   // tiles: any[][];
 
@@ -86,65 +145,210 @@ export default class VillageView extends Vue {
   //   { x: 0, y: 1 },
   // ];
 
-  buildings = [
-    {
-      x: 0, y: 0, width: 2, height: 2, color: 'red', imageSrc: require('@/assets/map/castlekeep_13.png'),
-    },
-    {
-      x: 0, y: 0, width: 2, height: 2, color: 'red', imageSrc: require('@/assets/map/castlekeep_13.png'),
-    },
-    {
-      x: 2, y: 2, width: 2, height: 2, color: 'red', imageSrc: require('@/assets/map/chapel_01a.png'),
-    },
-  ];
+  // buildings = [
+  //   {
+  //     x: 0, y: 0, size: 2, color: 'red', imageSrc: require('@/assets/map/castlekeep_13.png'),
+  //   },
+  //   {
+  //     x: 0, y: 0, size: 2, color: 'red', imageSrc: require('@/assets/map/castlekeep_13.png'),
+  //   },
+  //   {
+  //     x: 2, y: 2, size: 2, color: 'red', imageSrc: require('@/assets/map/chapel_01a.png'),
+  //   },
+  // ];
+
+  // walls = [
+  //   {
+  //     x: -1, y: -1, image: require('@/assets/map/wall_04d_noshadow.png'),
+  //   },
+  //   {
+  //     x: 0, y: -1, image: require('@/assets/map/wall_01d_noshadow.png'),
+  //   },
+  //   {
+  //     x: 1, y: -1, image: require('@/assets/map/wall_01d_noshadow.png'),
+  //   },
+  //   {
+  //     x: 2, y: -1, image: require('@/assets/map/wall_01d_noshadow.png'),
+  //   },
+
+  // ]
 
   $store: Store<AppState>;
 
-  get contract() {
+  get currentAddress() {
+    return this.$store.state.ethAddress;
+  }
+
+  get contract(): Web3Contract {
     return this.$store.state.contract;
   }
 
-  get tileWidth() {
+  get tileWidth(): number {
     if (!this.village) {
       return 0;
     }
-    return 100 / this.village.size;
+    return 100 / (this.village.size);
   }
 
-  get tileHeight() {
+  get tileHeight(): number {
     if (!this.village) {
       return 0;
     }
-    return 100 / this.village.size;
+    return 100 / (this.village.size);
   }
 
-  get tiles() {
+  get tiles(): { x: number, y: number }[] {
     if (!this.village) {
       return [];
     }
+    // return Array.from(new Array(this.village.size + 2)).reduce((acc, val1, index1) => ([...acc, ...Array.from(new Array(this.village.size + 2)).map((val2, index2) => ({ x: index1 - 1, y: index2 - 1 }))]), []);
     return Array.from(new Array(this.village.size)).reduce((acc, val1, index1) => ([...acc, ...Array.from(new Array(this.village.size)).map((val2, index2) => ({ x: index1, y: index2 }))]), []);
   }
 
-  get startX() {
+  get wallsBehind() {
+    const walls = [];
+    // // Top
+    // walls.push({
+    //   x: -1, y: -1, pos: 'top', image: require('@/assets/map/walls_cropped/wall_06d_noshadow.png'),
+    // });
+    // // Top-left wall
+    // for (let i = 0; i < this.village.size; i += 1) {
+    //   walls.push({
+    //     x: i, y: -1, pos: 'top-left', image: require('@/assets/map/walls_cropped/wall_06d_noshadow.png'),
+    //   });
+    // }
+    // // Left
+    // walls.push({
+    //   x: this.village.size, y: -1, pos: 'left', image: require('@/assets/map/walls_cropped/wall_04b_noshadow.png'),
+    // });
+    // // Top-right wall
+    // for (let i = 0; i < this.village.size; i += 1) {
+    //   walls.push({
+    //     x: -1, y: i, pos: 'top-right', image: require('@/assets/map/walls_cropped/wall_06c_noshadow.png'),
+    //   });
+    // }
+    // // Right
+    // walls.push({
+    //   x: -1, y: this.village.size, pos: 'right', image: require('@/assets/map/walls_cropped/wall_06d_noshadow.png'),
+    // });
+    return walls;
+  }
+
+  get wallsInFront() {
+    const walls = [];
+    // // Bottom-left wall
+    // for (let i = 0; i < this.village.size; i += 1) {
+    //   walls.push({
+    //     x: this.village.size, y: i, image: require('@/assets/map/walls_cropped/wall_06c_noshadow.png'),
+    //   });
+    // }
+    // // Bottom-right wall
+    // for (let i = 0; i < this.village.size; i += 1) {
+    //   walls.push({
+    //     x: i, y: this.village.size, image: require('@/assets/map/walls_cropped/wall_06d_noshadow.png'),
+    //   });
+    // }
+    // // Bottom
+    // walls.push({
+    //   x: this.village.size, y: this.village.size, image: require('@/assets/map/walls_cropped/wall_04a_noshadow.png'),
+    // });
+    return walls;
+  }
+
+  get startX(): number {
     return 50 - this.tileWidth / 2;
   }
 
-  click() {
-    console.log('click');
-    this.buildings = [this.buildings[1]];
-    this.keyCounter += 1;
+  get highlightAddtionalTilesSize(): number {
+    if (!this.currentlyPlacing) {
+      return 0;
+    }
+    return this.currentlyPlacing.size - 1;
   }
 
-  tileClicked(x: number, y: number) {
+  get currentTileOutOfBounds(): boolean {
+    if (this.currentlyPlacing === null) {
+      return false;
+    }
+    const xOutOfBounds = this.mouseOverX + this.currentlyPlacing.size > this.village.size;
+    const yOutOfBounds = this.mouseOverY + this.currentlyPlacing.size > this.village.size;
+    return xOutOfBounds || yOutOfBounds;
+  }
+
+  isTileHighlighted(x: number, y: number): boolean {
+    if (this.currentlyPlacing === null || this.mouseOverX === null || this.mouseOverY === null) {
+      return false;
+    }
+    const xInRange = x >= this.mouseOverX && x <= this.mouseOverX + this.highlightAddtionalTilesSize;
+    const yInRange = y >= this.mouseOverY && y <= this.mouseOverY + this.highlightAddtionalTilesSize;
+    return xInRange && yInRange;
+  }
+
+  canBePlaced(x: number, y: number): boolean {
+    if (this.currentTileOutOfBounds || this.currentlyPlacing === null) {
+      return false;
+    }
+    for (let i = x; i <= x + this.highlightAddtionalTilesSize; i += 1) {
+      for (let j = y; j <= y + this.highlightAddtionalTilesSize; j += 1) {
+        if (this.hasBuilding(i, j)) {
+          console.log('has building');
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  hasBuilding(x: number, y: number): boolean {
+    /* eslint-disable-next-line no-restricted-syntax */
+    for (const building of this.village.buildings) {
+      const buildingUpperX = building.x + building.size - 1;
+      const buildingUpperY = building.y + building.size - 1;
+      if (x >= building.x && x <= buildingUpperX && y >= building.y && y <= buildingUpperY) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  tileClicked(x: number, y: number): void {
     console.log('x, y', x, y);
+    this.placeBuilding(this.currentlyPlacing, x, y);
+  }
+
+  async placeBuilding(building: IBuilding, x: number, y: number): Promise<void> {
+    const result = await this.contract.methods.placeBuilding(this.villageId, building.buildingType, x, y).send({ from: this.currentAddress });
+    return this.getVillage(this.villageId);
+  }
+
+  onMouseOverTile(x: number, y: number): void {
+    if (x < 0 || y < 0 || x >= this.village.size || y >= this.village.size) {
+      return;
+    }
+    this.mouseOverX = x;
+    this.mouseOverY = y;
+  }
+
+  onMouseLeaveTile(x: number, y: number): void {
+    this.mouseOverX = null;
+    this.mouseOverY = null;
+  }
+
+  setCurrentlyPlacing(type: BuildingTypes): void {
+    this.currentlyPlacing = buildings[type];
   }
 
   @Watch('villageId', { immediate: true })
-  async getVillage(villageId: number): Promise<void> {
+  async getVillage(villageId: string): Promise<void> {
     console.log('vid', villageId);
-    const village = await this.contract.methods.getVillage(villageId).call();
-    this.village = new Village(villageId, village);
-    console.log('village', this.village);
+    try {
+      const village = await this.contract.methods.getVillage(villageId).call();
+      this.village = new Village(villageId, village);
+      console.log('vill', this.village);
+    } catch (e: any) {
+      console.error(e);
+      this.village = null;
+    }
   }
 }
 </script>

@@ -120,6 +120,13 @@ describe('VillageNft', () => {
     });
   });
 
+  // describe('Get building sizes', () => {
+  //   it.only('should get the mapping of building sizes', async () => {
+  //     const result = await villageNft.buildingSizes(0);
+  //     console.log(result);
+  //   });
+  // });
+
   describe('Building placement', () => {
     let villageId: number;
 
@@ -149,6 +156,17 @@ describe('VillageNft', () => {
       const receipt = await result.wait();
       expect(receipt.status).to.eql(1);
       expect(receipt.events[0].event).to.eql('NewBuilding');
+    });
+
+    it('should allow placement next to an existing building', async () => {
+      const result = await villageNft.connect(alice).placeBuilding(villageId, 0, 0, 0);
+      const receipt = await result.wait();
+      expect(receipt.status).to.eql(1);
+
+      const result2 = await villageNft.connect(alice).placeBuilding(villageId, 1, 0, 3);
+      const receipt2 = await result2.wait();
+      expect(receipt2.status).to.eql(1);
+      expect(receipt2.events[0].event).to.eql('NewBuilding');
     });
 
     it('should not allow placement of a building on a village belonging to someone else', async () => {

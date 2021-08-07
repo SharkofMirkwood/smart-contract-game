@@ -13,9 +13,9 @@ contract VillageGame is Ownable {
     enum BuildingTypes { TownHall, GoldMine, Wall, AdventurerHall, House, Armoury, Blacksmith }
 
     // Mapping from each building to how large they are on the map
-    mapping(BuildingTypes => uint8) buildingSizes;
+    mapping(BuildingTypes => uint8) public buildingSizes;
 
-    // Array of all villages
+    // Mapping of all villages
     mapping (uint => Village) villages;
 
     // Village IDs by their coordinates
@@ -95,6 +95,16 @@ contract VillageGame is Ownable {
         mapSize = _mapSize;
     }
 
+    function _requireHasNoBuilding(uint8 x, uint8 y, BuildingPlacement[] storage buildings) private view {
+        // For each of the tiles, check another building doesn't already cover it
+        for (uint8 k = 0; k < buildings.length; k++) {
+            BuildingPlacement storage building = buildings[k];
+            uint8 buildingUpperX = building.x + building.size - 1;
+            uint8 buildingUpperY = building.y + building.size - 1;
+            require(x < building.x || x > buildingUpperX || y < building.y || y > buildingUpperY, 'Clashes with existing building');
+        }
+    }
+
     function _placeBuilding(uint _villageId, BuildingTypes _buildingType, uint8 _x, uint8 _y) internal {
         Village storage village = villages[_villageId];
         // Make sure the building doesn't already exist
@@ -108,13 +118,7 @@ contract VillageGame is Ownable {
         // Make sure we don't clash with any other buildings. `size` should be low enough (~1 to 3) that the iteration here hopefully won't be a problem
         for (uint8 i = _x; i < _x + size; i++) {
             for (uint8 j = _y; j < _y + size; j++) {
-                // For each of the tiles, check another building doesn't already cover it
-                for (uint8 k = 0; k < village.buildings.length; k++) {
-                    BuildingPlacement storage building = village.buildings[k];
-                    uint8 buildingUpperX = building.x + building.size;
-                    uint8 buildingUpperY = building.y + building.size;
-                    require(i < building.x || i > buildingUpperX || j < building.y || j > buildingUpperY, 'Clashes with existing building');
-                }
+                _requireHasNoBuilding(_x, _y, village.buildings);
             }
         }
         village.buildings.push(BuildingPlacement({

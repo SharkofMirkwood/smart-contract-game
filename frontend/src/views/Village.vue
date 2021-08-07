@@ -4,7 +4,7 @@
     <div v-if="!village">
       Village not found!
     </div>
-    <div class="village-outer-container" v-if="village">
+    <div style="height: 100%;" v-if="village">
       <div>VILLAGE: {{ village.name }}</div>
 
       <div>
@@ -13,73 +13,58 @@
         <b-button @click="setCurrentlyPlacing(BuildingTypes.AdventurerHall)">Adventurer Hall</b-button>
       </div>
 
-      <div class="village-container">
-        <div class="background" v-bind:style="{ 'min-height': `${tiles.length}%` }"></div>
-        <village-tile
-            v-for="(obj, index) of tiles"
-            v-bind:key="index + 'tile'"
-            :startX="startX"
-            :startY="startY"
-            :x="obj.x"
-            :y="obj.y"
-            :width="tileWidth"
-            :height="tileHeight"
-            :highlighted="isTileHighlighted(obj.x, obj.y)"
-            :hasBuilding="hasBuilding(obj.x, obj.y)"
-            :outOfBounds="currentTileOutOfBounds"
-            :canBePlaced="canBePlaced(obj.x, obj.y)"
-            v-on:on-click="tileClicked"
-            v-on:on-mouse-over="onMouseOverTile"
-            v-on:on-mouse-leave="onMouseLeaveTile"
-          >
-        </village-tile>
+      <br />
 
-        <village-building
-            v-for="(obj, index) of wallsBehind"
-            v-bind:key="index + 'wallbehind'"
-            :startX="startX"
-            :startY="startY"
-            :x="obj.x"
-            :y="obj.y"
-            :width="1"
-            :height="1"
-            :tileWidth="tileWidth"
-            :tileHeight="tileHeight"
-            :imageSrc="obj.image"
-            :isWall="true"
-          >
-        </village-building>
-        <village-building
-            v-for="(obj, index) of village.buildings"
-            v-bind:key="index + 'building'"
-            :startX="startX"
-            :startY="startY"
-            :x="obj.x"
-            :y="obj.y"
-            :width="obj.size"
-            :height="obj.size"
-            :tileWidth="tileWidth"
-            :tileHeight="tileHeight"
-            :imageSrc="obj.building.image"
-          >
-        </village-building>
-
-        <village-building
-            v-for="(obj, index) of wallsInFront"
-            v-bind:key="index + 'wallfront'"
-            :startX="startX"
-            :startY="startY"
-            :x="obj.x"
-            :y="obj.y"
-            :width="1"
-            :height="1"
-            :tileWidth="tileWidth"
-            :tileHeight="tileHeight"
-            :imageSrc="obj.image"
-            :isWall="true"
-          >
-        </village-building>
-
+      <div class="village-outer-container">
+        <div class="village-container">
+          <div class="background" v-bind:style="{ 'min-height': `${tiles.length}%` }"></div>
+          <village-tile
+              v-for="(obj, index) of grassTiles"
+              v-bind:key="index + 'grasstile'"
+              :startX="startX"
+              :startY="startY"
+              :x="obj.x"
+              :y="obj.y"
+              :width="tileWidth"
+              :height="tileHeight"
+              :canBePlaced="false"
+              :imageSrc="require('@/assets/map/backgrounds/grass_04.png')"
+            >
+          </village-tile>
+          <village-tile
+              v-for="(obj, index) of tiles"
+              v-bind:key="index + 'tile'"
+              :startX="startX"
+              :startY="startY"
+              :x="obj.x"
+              :y="obj.y"
+              :width="tileWidth"
+              :height="tileHeight"
+              :highlighted="isTileHighlighted(obj.x, obj.y)"
+              :hasBuilding="hasBuilding(obj.x, obj.y)"
+              :outOfBounds="currentTileOutOfBounds"
+              :canBePlaced="canBePlaced(obj.x, obj.y)"
+              v-on:on-click="tileClicked"
+              v-on:on-mouse-over="onMouseOverTile"
+              v-on:on-mouse-leave="onMouseLeaveTile"
+              :imageSrc="require('@/assets/map/backgrounds/ground_01.png')"
+            >
+          </village-tile>
+          <village-building
+              v-for="(obj, index) of village.buildings"
+              v-bind:key="index + 'building'"
+              :startX="startX"
+              :startY="startY"
+              :x="obj.x"
+              :y="obj.y"
+              :width="obj.size"
+              :height="obj.size"
+              :tileWidth="tileWidth"
+              :tileHeight="tileHeight"
+              :imageSrc="obj.building.image"
+            >
+          </village-building>
+        </div>
       </div>
     </div>
 
@@ -92,14 +77,15 @@
 }
 .village-outer-container {
   height: 100%;
+  overflow: hidden;
 }
 .village-container {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: 80%;
   .background {
-    background-color: green;
-    padding-top: 65%;
+    background-color: rgba(81, 138, 81, 0.8);
+    padding-top: 100%;
     position: absolute;
     width: 100%;
     margin-bottom: 20px;
@@ -128,7 +114,7 @@ export default class VillageView extends Vue {
 
   village: Village = null;
 
-  startY = 20;
+  startY = 15;
 
   BuildingTypes = BuildingTypes;
 
@@ -203,6 +189,13 @@ export default class VillageView extends Vue {
     }
     // return Array.from(new Array(this.village.size + 2)).reduce((acc, val1, index1) => ([...acc, ...Array.from(new Array(this.village.size + 2)).map((val2, index2) => ({ x: index1 - 1, y: index2 - 1 }))]), []);
     return Array.from(new Array(this.village.size)).reduce((acc, val1, index1) => ([...acc, ...Array.from(new Array(this.village.size)).map((val2, index2) => ({ x: index1, y: index2 }))]), []);
+  }
+
+  get grassTiles(): { x: number, y: number }[] {
+    if (!this.village) {
+      return [];
+    }
+    return Array.from(new Array(this.village.size + 2)).reduce((acc, val1, index1) => ([...acc, ...Array.from(new Array(this.village.size + 2)).map((val2, index2) => ({ x: index1 - 1, y: index2 - 1 }))]), []);
   }
 
   get wallsBehind() {

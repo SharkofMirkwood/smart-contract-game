@@ -4,7 +4,7 @@
   class="village-tile"
   v-bind:style="{ left: calculatedBox.x + '%', top: calculatedBox.y + '%', width: calculatedBox.w + '%', height: calculatedBox.h + '%' }"
   v-bind:class="{ hover: highlighted, 'has-building': hasBuilding, 'out-of-bounds': outOfBounds, 'cannot-be-placed': !canBePlaced }">
-  <img :src="require('@/assets/map/backgrounds/ground_01.png')" />
+  <img :src="imageSrc" />
   <div class="clicker" @click="onClick()" @mouseover="onMouseOver()" @mouseleave="onMouseLeave()"></div>
 </div>
 
@@ -17,7 +17,7 @@
   pointer-events: none;
 
   img {
-    width: 100%;
+    width: 101%;
     // height: 100%;
     position: absolute;
     bottom: 0px;
@@ -92,6 +92,8 @@ export default class VillageTile extends Vue {
   @Prop() outOfBounds: boolean;
 
   @Prop() canBePlaced: boolean;
+
+  @Prop() imageSrc: any;
 
   get calculatedBox() {
     const x = this.startX - (this.x * this.width * 0.5) + (this.y * this.height * 0.5);

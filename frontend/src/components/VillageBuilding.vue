@@ -4,7 +4,7 @@
   class="village-building"
   v-bind:style="{ left: calculatedBox.x + '%', top: calculatedBox.y + '%', width: calculatedBox.w + '%', height: calculatedBox.h + '%' }"
   v-bind:class="{ hover: isMouseOver, wall: isWall }">
-  <img :src="imageSrc" v-bind:style="imgStyle" />
+  <img :src="imageSrc" />
   <div class="clicker" @mouseover="isMouseOver = true" @mouseleave="isMouseOver = false"></div>
 </div>
 
@@ -102,15 +102,5 @@ export default class VillageTile extends Vue {
       h: this.height * this.tileHeight,
     };
   }
-
-  // get imgStyle() {
-  //   if (!this.isWall) {
-  //     return {};
-  //   }
-  //   switch (this.pos) {
-  //     case 'top':
-  //       return {}
-  //   }
-  // }
 }
 </script>

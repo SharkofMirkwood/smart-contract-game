@@ -2,7 +2,7 @@
   <div id="app">
     <Navbar />
     <b-container>
-      <b-aspect aspect="2" v-if="$store.state.contract">
+      <b-aspect aspect="1.6" v-if="$store.state.contract">
         <router-view />
       </b-aspect>
     </b-container>

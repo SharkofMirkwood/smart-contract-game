@@ -15,6 +15,11 @@ contract VillageGame is Ownable {
     // Mapping from each building to how large they are on the map
     mapping(BuildingTypes => uint8) public buildingSizes;
 
+    // Building attributes: size, initialGoldCost, levelUpCostMultiplier 
+    uint statsDigits = 16;
+
+    uint statsModulus = 10 ** statsDigits;
+
     // Mapping of all villages
     mapping (uint => Village) villages;
 
@@ -37,6 +42,7 @@ contract VillageGame is Ownable {
         uint8 baseGoldRate;
         uint32 readyToMineTime;
         uint256 id;
+        uint256 stats;
         string name;
         BuildingPlacement[] buildings;
         bool exists;
@@ -59,6 +65,11 @@ contract VillageGame is Ownable {
         buildingSizes[BuildingTypes.Blacksmith] = 1;
     }
 
+    function _generateStats(int8 _x, int8 _y) private view returns (uint) {
+        uint rand = uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, _x, _y)));
+        return rand % statsModulus;
+    }
+
     function _createVillage(string memory _name, int8 _x, int8 _y) internal returns (uint villageId) {
         // Check x and y params are both within the max size of the map
         require(_x <= int(mapSize) && _x >= 0 - int(mapSize), 'x coordinate out of bounds');
@@ -77,6 +88,7 @@ contract VillageGame is Ownable {
         village.baseGoldRate = 100;
         village.readyToMineTime = uint32(block.timestamp);
         village.name = _name;
+        village.stats = _generateStats(_x, _y);
         village.exists = true;
 
         villageMap[_x][_y] = villageId;
@@ -95,13 +107,13 @@ contract VillageGame is Ownable {
         mapSize = _mapSize;
     }
 
-    function _requireHasNoBuilding(uint8 x, uint8 y, BuildingPlacement[] storage buildings) private view {
+    function _requireHasNoBuilding(uint8 _x, uint8 _y, BuildingPlacement[] storage _buildings) private view {
         // For each of the tiles, check another building doesn't already cover it
-        for (uint8 k = 0; k < buildings.length; k++) {
-            BuildingPlacement storage building = buildings[k];
+        for (uint8 k = 0; k < _buildings.length; k++) {
+            BuildingPlacement storage building = _buildings[k];
             uint8 buildingUpperX = building.x + building.size - 1;
             uint8 buildingUpperY = building.y + building.size - 1;
-            require(x < building.x || x > buildingUpperX || y < building.y || y > buildingUpperY, 'Clashes with existing building');
+            require(_x < building.x || _x > buildingUpperX || _y < building.y || _y > buildingUpperY, 'Clashes with existing building');
         }
     }
 

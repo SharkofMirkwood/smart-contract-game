@@ -3,7 +3,14 @@
 
     <h2>My villages</h2>
 
-    <b-table striped hover :items="villages"></b-table>
+    <b-table striped hover :items="villages">
+      <template #cell(villageId)="data">
+        <router-link :to="{ name: 'view-village', params: { villageId: data.item.villageId }}">{{ data.item.villageId }}</router-link>
+      </template>
+      <template #cell(buildings)="data">
+        {{ data.item.buildings.map(x => x.building.name).join(', ') }}
+      </template>
+    </b-table>
 
     <h2>Create village</h2>
 

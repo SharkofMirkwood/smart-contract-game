@@ -105,6 +105,8 @@ export class Village {
 
   y: number;
 
+  stats: string;
+
   constructor(villageId: string, villageData: any) {
     this.villageId = parseInt(villageId, 10);
     this.buildings = villageData.buildings.map((x: unknown) => new BuildingPlacement(x));
@@ -114,5 +116,12 @@ export class Village {
     this.size = parseInt(villageData.size, 10);
     this.x = parseInt(villageData.x, 10);
     this.y = parseInt(villageData.y, 10);
+    this.stats = villageData.stats;
+  }
+
+  get bannerType(): number {
+    console.log('this.stats', this.stats);
+    const digits = parseInt(this.stats.substr(0, 2), 10);
+    return digits;
   }
 }

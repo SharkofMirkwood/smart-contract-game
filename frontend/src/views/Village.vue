@@ -195,58 +195,58 @@ export default class VillageView extends Vue {
     if (!this.village) {
       return [];
     }
-    return Array.from(new Array(this.village.size + 2)).reduce((acc, val1, index1) => ([...acc, ...Array.from(new Array(this.village.size + 2)).map((val2, index2) => ({ x: index1 - 1, y: index2 - 1 }))]), []);
+    return Array.from(new Array(this.village.size + 4)).reduce((acc, val1, index1) => ([...acc, ...Array.from(new Array(this.village.size + 4)).map((val2, index2) => ({ x: index1 - 2, y: index2 - 2 }))]), []);
   }
 
-  get wallsBehind() {
-    const walls = [];
-    // // Top
-    // walls.push({
-    //   x: -1, y: -1, pos: 'top', image: require('@/assets/map/walls_cropped/wall_06d_noshadow.png'),
-    // });
-    // // Top-left wall
-    // for (let i = 0; i < this.village.size; i += 1) {
-    //   walls.push({
-    //     x: i, y: -1, pos: 'top-left', image: require('@/assets/map/walls_cropped/wall_06d_noshadow.png'),
-    //   });
-    // }
-    // // Left
-    // walls.push({
-    //   x: this.village.size, y: -1, pos: 'left', image: require('@/assets/map/walls_cropped/wall_04b_noshadow.png'),
-    // });
-    // // Top-right wall
-    // for (let i = 0; i < this.village.size; i += 1) {
-    //   walls.push({
-    //     x: -1, y: i, pos: 'top-right', image: require('@/assets/map/walls_cropped/wall_06c_noshadow.png'),
-    //   });
-    // }
-    // // Right
-    // walls.push({
-    //   x: -1, y: this.village.size, pos: 'right', image: require('@/assets/map/walls_cropped/wall_06d_noshadow.png'),
-    // });
-    return walls;
-  }
+  // get wallsBehind() {
+  //   const walls = [];
+  //   // // Top
+  //   // walls.push({
+  //   //   x: -1, y: -1, pos: 'top', image: require('@/assets/map/walls_cropped/wall_06d_noshadow.png'),
+  //   // });
+  //   // // Top-left wall
+  //   // for (let i = 0; i < this.village.size; i += 1) {
+  //   //   walls.push({
+  //   //     x: i, y: -1, pos: 'top-left', image: require('@/assets/map/walls_cropped/wall_06d_noshadow.png'),
+  //   //   });
+  //   // }
+  //   // // Left
+  //   // walls.push({
+  //   //   x: this.village.size, y: -1, pos: 'left', image: require('@/assets/map/walls_cropped/wall_04b_noshadow.png'),
+  //   // });
+  //   // // Top-right wall
+  //   // for (let i = 0; i < this.village.size; i += 1) {
+  //   //   walls.push({
+  //   //     x: -1, y: i, pos: 'top-right', image: require('@/assets/map/walls_cropped/wall_06c_noshadow.png'),
+  //   //   });
+  //   // }
+  //   // // Right
+  //   // walls.push({
+  //   //   x: -1, y: this.village.size, pos: 'right', image: require('@/assets/map/walls_cropped/wall_06d_noshadow.png'),
+  //   // });
+  //   return walls;
+  // }
 
-  get wallsInFront() {
-    const walls = [];
-    // // Bottom-left wall
-    // for (let i = 0; i < this.village.size; i += 1) {
-    //   walls.push({
-    //     x: this.village.size, y: i, image: require('@/assets/map/walls_cropped/wall_06c_noshadow.png'),
-    //   });
-    // }
-    // // Bottom-right wall
-    // for (let i = 0; i < this.village.size; i += 1) {
-    //   walls.push({
-    //     x: i, y: this.village.size, image: require('@/assets/map/walls_cropped/wall_06d_noshadow.png'),
-    //   });
-    // }
-    // // Bottom
-    // walls.push({
-    //   x: this.village.size, y: this.village.size, image: require('@/assets/map/walls_cropped/wall_04a_noshadow.png'),
-    // });
-    return walls;
-  }
+  // get wallsInFront() {
+  //   const walls = [];
+  //   // // Bottom-left wall
+  //   // for (let i = 0; i < this.village.size; i += 1) {
+  //   //   walls.push({
+  //   //     x: this.village.size, y: i, image: require('@/assets/map/walls_cropped/wall_06c_noshadow.png'),
+  //   //   });
+  //   // }
+  //   // // Bottom-right wall
+  //   // for (let i = 0; i < this.village.size; i += 1) {
+  //   //   walls.push({
+  //   //     x: i, y: this.village.size, image: require('@/assets/map/walls_cropped/wall_06d_noshadow.png'),
+  //   //   });
+  //   // }
+  //   // // Bottom
+  //   // walls.push({
+  //   //   x: this.village.size, y: this.village.size, image: require('@/assets/map/walls_cropped/wall_04a_noshadow.png'),
+  //   // });
+  //   return walls;
+  // }
 
   get startX(): number {
     return 50 - this.tileWidth / 2;
@@ -284,7 +284,6 @@ export default class VillageView extends Vue {
     for (let i = x; i <= x + this.highlightAddtionalTilesSize; i += 1) {
       for (let j = y; j <= y + this.highlightAddtionalTilesSize; j += 1) {
         if (this.hasBuilding(i, j)) {
-          console.log('has building');
           return false;
         }
       }

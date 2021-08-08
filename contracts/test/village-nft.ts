@@ -214,6 +214,9 @@ describe('VillageNft', () => {
       expect(result.size).to.eql(5);
       expect(result.baseGoldRate).to.eql(100);
       expect(result.name).to.eql(villageName);
+      expect(result.stats.toNumber()).to.be.greaterThan(0);
+      expect(`${result.stats}`).to.have.length.lessThanOrEqual(16);
+
       expect(result.buildings).to.have.length(1);
       expect(result.buildings[0].x).to.eql(0);
       expect(result.buildings[0].y).to.eql(0);

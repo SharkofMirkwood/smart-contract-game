@@ -77,10 +77,6 @@ export default class VillageTile extends Vue {
 
   @Prop() y: number;
 
-  @Prop() startX: number;
-
-  @Prop() startY: number;
-
   @Prop() width: number;
 
   @Prop() height: number;
@@ -96,8 +92,10 @@ export default class VillageTile extends Vue {
   @Prop() imageSrc: any;
 
   get calculatedBox() {
-    const x = this.startX - (this.x * this.width * 0.5) + (this.y * this.height * 0.5);
-    const y = this.startY + (this.x * this.width * 0.5) + (this.y * this.height * 0.5);
+    const startX = 50 - this.width * 0.5;
+    const startY = this.height * 0.5;
+    const x = startX - (this.x * this.width * 0.5) + (this.y * this.height * 0.5);
+    const y = startY + (this.x * this.width * 0.5) + (this.y * this.height * 0.5);
 
     return {
       x,

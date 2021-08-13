@@ -3,9 +3,12 @@
 <div
   class="village-building"
   v-bind:style="{ left: calculatedBox.x + '%', top: calculatedBox.y + '%', width: calculatedBox.w + '%', height: calculatedBox.h + '%' }"
-  v-bind:class="{ hover: isMouseOver, wall: isWall }">
-  <img :src="imageSrc" />
-  <div class="clicker" @mouseover="isMouseOver = true" @mouseleave="isMouseOver = false"></div>
+  v-bind:class="{ hover: isClickable && isMouseOver, wall: isWall }">
+  <img
+  :src="imageSrc"
+  v-bind:style="{ left: `${imageFromLeft}%`, bottom: `${imageFromBottom}%`, width: `${imageWidth}%` }"
+  />
+  <div class="clicker" @click="onClick()" @mouseover="onMouseOver()" @mouseleave="onMouseLeave()"></div>
 </div>
 
 </template>
@@ -37,10 +40,10 @@
     transform-style: preserve-3d;
     transform-origin: top left;
     pointer-events: all;
-    cursor: pointer;
   }
   &.hover {
     // opacity: 0.8;
+    cursor: pointer;
 
     img {
       filter: drop-shadow(1px 0px 7px black);
@@ -69,13 +72,15 @@ export default class VillageTile extends Vue {
 
   @Prop() y: number;
 
-  @Prop() startX: number;
+  @Prop({ default: 1 }) width: number;
 
-  @Prop() startY: number;
+  @Prop({ default: 1 }) height: number;
 
-  @Prop() width: number;
+  @Prop({ default: 90 }) imageWidth: number;
 
-  @Prop() height: number;
+  @Prop({ default: 5 }) imageFromLeft: number;
+
+  @Prop({ default: 5 }) imageFromBottom: number;
 
   @Prop() tileWidth: number;
 
@@ -89,11 +94,15 @@ export default class VillageTile extends Vue {
 
   @Prop({ default: false }) isWall: boolean;
 
+  @Prop({ default: true }) isClickable: boolean;
+
   private isMouseOver = false;
 
   get calculatedBox() {
-    const x = this.startX - ((this.x + this.width - 1) * this.tileWidth * 0.5) + ((this.y) * this.tileHeight * 0.5);
-    const y = this.startY + (this.x * this.tileWidth * 0.5) + (this.y * this.tileHeight * 0.5);
+    const startX = 50 - this.tileWidth * 0.5;
+    const startY = this.tileHeight * 0.5;
+    const x = startX - ((this.x + this.width - 1) * this.tileWidth * 0.5) + ((this.y) * this.tileHeight * 0.5);
+    const y = startY + (this.x * this.tileWidth * 0.5) + (this.y * this.tileHeight * 0.5);
 
     return {
       x,
@@ -101,6 +110,20 @@ export default class VillageTile extends Vue {
       w: this.height * this.tileWidth,
       h: this.height * this.tileHeight,
     };
+  }
+
+  onMouseOver() {
+    this.isMouseOver = true;
+    this.$emit('on-mouse-over', this.x, this.y);
+  }
+
+  onMouseLeave() {
+    this.isMouseOver = false;
+    this.$emit('on-mouse-leave', this.x, this.y);
+  }
+
+  onClick() {
+    this.$emit('on-click', this.x, this.y);
   }
 }
 </script>

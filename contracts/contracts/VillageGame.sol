@@ -24,7 +24,7 @@ contract VillageGame is Ownable {
     mapping (uint => Village) villages;
 
     // Village IDs by their coordinates
-    mapping(int8 => mapping(int8 => uint256)) private villageMap;
+    mapping(int8 => mapping(int8 => uint256)) public villageMap;
 
     struct BuildingPlacement {
         uint8 x;
@@ -152,6 +152,24 @@ contract VillageGame is Ownable {
         village = villages[_villageId];
         require(village.exists == true, 'village ID does not exist');
     }
+
+    // // function getByCoordinates(int _x, int _y, int _size) public view returns (int[]) {
+    // //     return (1, 1);
+    // // }
+
+    // function getVillageMap(int8 _x, int8 _y, int _size) public view returns(int8[2][] memory villages) {
+    //     int8[2][] memory villages;
+    //     uint counter = 0;
+    //     for (int8 i = _x; i < _x + _size; i++) {
+    //         for (int8 j = _y; j < _y + _size; j++) {
+    //             if (villageMap[i][j] > 0) {
+    //                 // villages.push([i, j]);
+    //                 villages[counter++] = [i, j];
+    //             }
+    //         }
+    //     }
+    //     return villages;
+    // }
 
     // function mineGold(uint _villageId) external onlyOwnerOf(_villageId) {
     //     Village storage village = villages[_villageId];

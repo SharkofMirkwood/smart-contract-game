@@ -20,22 +20,18 @@
           <div class="background" v-bind:style="{ 'min-height': `${tiles.length}%` }"></div>
           <village-tile
               v-for="(obj, index) of grassTiles"
-              v-bind:key="index + 'grasstile'"
-              :startX="startX"
-              :startY="startY"
+              v-bind:key="`grasstile_${index}`"
               :x="obj.x"
               :y="obj.y"
               :width="tileWidth"
               :height="tileHeight"
               :canBePlaced="false"
-              :imageSrc="require('@/assets/map/backgrounds/grass_04.png')"
+              :imageSrc="require(`@/assets/map/terrain_cropped/grass_0${village.grassType}.png`)"
             >
           </village-tile>
           <village-tile
               v-for="(obj, index) of tiles"
-              v-bind:key="index + 'tile'"
-              :startX="startX"
-              :startY="startY"
+              v-bind:key="`tile_${index}`"
               :x="obj.x"
               :y="obj.y"
               :width="tileWidth"
@@ -47,14 +43,12 @@
               v-on:on-click="tileClicked"
               v-on:on-mouse-over="onMouseOverTile"
               v-on:on-mouse-leave="onMouseLeaveTile"
-              :imageSrc="require('@/assets/map/backgrounds/ground_01.png')"
+              :imageSrc="require(`@/assets/map/terrain_cropped/ground_0${village.groundType}.png`)"
             >
           </village-tile>
           <village-building
               v-for="(obj, index) of village.buildings"
-              v-bind:key="index + 'building'"
-              :startX="startX"
-              :startY="startY"
+              v-bind:key="`building_${index}`"
               :x="obj.x"
               :y="obj.y"
               :width="obj.size"
@@ -62,6 +56,21 @@
               :tileWidth="tileWidth"
               :tileHeight="tileHeight"
               :imageSrc="obj.building.image"
+              v-on:on-click="buildingClicked"
+            >
+          </village-building>
+          <village-building
+              v-for="(obj, index) of village.decorations"
+              v-bind:key="`decoration_${index}`"
+              :x="obj.x"
+              :y="obj.y"
+              :tileWidth="tileWidth"
+              :tileHeight="tileHeight"
+              :imageWidth="obj.imageWidth"
+              :imageFromBottom="obj.imageFromBottom"
+              :imageFromLeft="obj.imageFromLeft"
+              :imageSrc="obj.imageSrc"
+              :isClickable="false"
             >
           </village-building>
         </div>
@@ -114,7 +123,7 @@ export default class VillageView extends Vue {
 
   village: Village = null;
 
-  startY = 15;
+  // startY = 15;
 
   BuildingTypes = BuildingTypes;
 
@@ -195,7 +204,59 @@ export default class VillageView extends Vue {
     if (!this.village) {
       return [];
     }
-    return Array.from(new Array(this.village.size + 4)).reduce((acc, val1, index1) => ([...acc, ...Array.from(new Array(this.village.size + 4)).map((val2, index2) => ({ x: index1 - 2, y: index2 - 2 }))]), []);
+    return Array.from(new Array(this.village.size + 2)).reduce((acc, val1, index1) => ([...acc, ...Array.from(new Array(this.village.size + 2)).map((val2, index2) => ({ x: index1 - 1, y: index2 - 1 }))]), []);
+  }
+
+  get decorations(): { x: number, y: number, imageSrc: string, imageWidth: number, imageFromBottom: number, imageFromLeft: number }[] {
+    if (!this.village) {
+      return [];
+    }
+    const paddedBanner = this.village.bannerType > 9 ? `${this.village.bannerType}` : `0${this.village.bannerType}`;
+    console.log('paddedBanner', paddedBanner);
+    return [
+      // banners
+      {
+        x: this.village.size,
+        y: this.village.size - 1,
+        imageSrc: require(`@/assets/map/banners/banner_${paddedBanner}a.png`),
+        imageWidth: 50,
+        imageFromBottom: 30,
+        imageFromLeft: 30,
+      },
+      {
+        x: this.village.size - 1,
+        y: this.village.size,
+        imageSrc: require(`@/assets/map/banners/banner_${paddedBanner}b.png`),
+        imageWidth: 50,
+        imageFromBottom: 30,
+        imageFromLeft: 30,
+      },
+      // Top-right stream
+      {
+        x: -1,
+        y: 1,
+        imageSrc: require('@/assets/map/terrain_cropped/moat_01h.png'),
+        imageWidth: 48,
+        imageFromBottom: 7,
+        imageFromLeft: 46,
+      },
+      {
+        x: -1,
+        y: 2,
+        imageSrc: require('@/assets/map/terrain_cropped/moat_01c.png'),
+        imageWidth: 83,
+        imageFromBottom: 8,
+        imageFromLeft: 10,
+      },
+      {
+        x: -1,
+        y: 3,
+        imageSrc: require('@/assets/map/terrain_cropped/moat_01i.png'),
+        imageWidth: 80,
+        imageFromBottom: 31,
+        imageFromLeft: 11,
+      },
+    ];
   }
 
   // get wallsBehind() {
@@ -248,9 +309,9 @@ export default class VillageView extends Vue {
   //   return walls;
   // }
 
-  get startX(): number {
-    return 50 - this.tileWidth / 2;
-  }
+  // get startX(): number {
+  //   return 50 - this.tileWidth / 2;
+  // }
 
   get highlightAddtionalTilesSize(): number {
     if (!this.currentlyPlacing) {
@@ -306,6 +367,10 @@ export default class VillageView extends Vue {
   tileClicked(x: number, y: number): void {
     console.log('x, y', x, y);
     this.placeBuilding(this.currentlyPlacing, x, y);
+  }
+
+  buildingClicked(building: any): void {
+    console.log('building', building);
   }
 
   async placeBuilding(building: IBuilding, x: number, y: number): Promise<void> {

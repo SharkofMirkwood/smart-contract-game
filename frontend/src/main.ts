@@ -3,6 +3,7 @@ import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
 
 import Navbar from '@/components/Navbar.vue';
 import VillageTile from '@/components/VillageTile.vue';
+import CreateVillageForm from '@/components/CreateVillageForm.vue';
 
 import App from './App.vue';
 import router from './router';
@@ -18,6 +19,7 @@ Vue.use(IconsPlugin);
 Vue.config.productionTip = false;
 
 Vue.component('Navbar', Navbar);
+Vue.component('CreateVillageForm', CreateVillageForm);
 Vue.component('VillageTile', VillageTile);
 
 new Vue({

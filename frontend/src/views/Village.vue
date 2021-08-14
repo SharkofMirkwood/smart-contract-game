@@ -15,7 +15,7 @@
 
       <br />
 
-      <div class="village-outer-container">
+      <div class="village-outer-container inlaid">
         <div class="village-container">
           <div class="background" v-bind:style="{ 'min-height': `${tiles.length}%` }"></div>
           <village-tile

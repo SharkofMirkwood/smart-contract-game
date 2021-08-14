@@ -2,9 +2,12 @@
   <div id="app">
     <Navbar />
     <b-container>
+      <b-card>
+
       <b-aspect aspect="1.6" v-if="$store.state.contract">
         <router-view />
       </b-aspect>
+  </b-card>
     </b-container>
   </div>
 </template>
@@ -15,7 +18,7 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
+  // color: #2c3e50;
   padding-bottom: 20px;
 }
 
@@ -24,7 +27,7 @@
 
   a {
     font-weight: bold;
-    color: #2c3e50;
+    // color: #2c3e50;
 
     &.router-link-exact-active {
       color: #42b983;

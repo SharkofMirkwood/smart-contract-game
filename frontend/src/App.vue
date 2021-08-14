@@ -2,7 +2,7 @@
   <div id="app">
     <Navbar />
     <b-container>
-      <b-card>
+      <b-card style="margin-top: 20px;">
 
       <b-aspect aspect="1.6" v-if="$store.state.contract">
         <router-view />

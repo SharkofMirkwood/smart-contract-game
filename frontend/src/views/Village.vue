@@ -4,7 +4,7 @@
     <div v-if="!village">
       Village not found!
     </div>
-    <div style="height: 100%;" v-if="village">
+    <div v-if="village">
       <div>VILLAGE: {{ village.name }}</div>
 
       <div>
@@ -15,7 +15,7 @@
 
       <br />
 
-      <div class="village-outer-container inlaid">
+      <div class="village-outer-container">
         <div class="village-container">
           <div class="background" v-bind:style="{ 'min-height': `${tiles.length}%` }"></div>
           <village-tile
@@ -82,16 +82,19 @@
 
 <style lang="scss">
 .village-page {
-  height: 100%;
+  // height: 100%;
 }
 .village-outer-container {
   height: 100%;
   overflow: hidden;
-}
-.village-container {
   position: relative;
   width: 100%;
-  height: 80%;
+  padding-bottom: 60%;
+}
+.village-container {
+  position: absolute;
+  width: 100%;
+  height: 82%;
   .background {
     background-color: rgba(81, 138, 81, 0.8);
     padding-top: 100%;

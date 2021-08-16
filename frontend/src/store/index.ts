@@ -58,9 +58,9 @@ export default new Vuex.Store<AppState>({
       });
       ethereum.on('chainChanged', (networkId: string) => {
         console.log('chainChanged', networkId);
-        if (networkId !== chainIdHex) {
-          window.location.reload();
-        }
+        // if (networkId !== chainIdHex) {
+        window.location.reload();
+        // }
       });
 
       const [coinbase, currentChainId] = await Promise.all([web3.eth.getCoinbase(), web3.eth.net.getId()]);

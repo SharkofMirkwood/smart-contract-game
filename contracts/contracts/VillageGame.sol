@@ -15,6 +15,8 @@ contract VillageGame is Ownable {
     // Mapping from each building to how large they are on the map
     mapping(BuildingTypes => uint8) public buildingSizes;
 
+    address villageGoldContract;
+
     // Building attributes: size, initialGoldCost, levelUpCostMultiplier 
     uint statsDigits = 16;
 
@@ -33,6 +35,7 @@ contract VillageGame is Ownable {
         uint8 level;
         uint32 upgradeCompleteTime;
         BuildingTypes buildingType;
+        bool exists;
     }
 
     struct Village {
@@ -49,11 +52,17 @@ contract VillageGame is Ownable {
         // mapping (BuildingTypes => uint8) buildingLevels;
     }
 
+    struct VillageBuildingId {
+        uint id;
+        bool exists;
+    }
+
     uint mapSize = 100;
 
     uint villageCounter = 1;
 
-    mapping (uint => mapping (BuildingTypes => uint8)) buildingLevels;
+    // Building level for each building for each village... should it be an index for the array of the building in the village instead of a level?
+    mapping (uint => mapping (BuildingTypes => VillageBuildingId)) buildingIds;
 
     constructor() {
         buildingSizes[BuildingTypes.TownHall] = 3;
@@ -95,10 +104,15 @@ contract VillageGame is Ownable {
         emit NewVillage(villageId, _name, _x, _y);
     }
 
+    function _villageHasBuilding(uint _villageId, BuildingTypes _buildingType) internal view returns (bool) {
+        VillageBuildingId storage buildingId = buildingIds[_villageId][_buildingType];
+        return buildingId.exists;
+    }
 
-    function _getBuildingLevel(uint _villageId, BuildingTypes _buildingType) internal view returns (uint8) {
-        // return villages[_villageId].buildingLevels[_buildingType];
-        return buildingLevels[_villageId][_buildingType];
+    function _getVillageBuilding(uint _villageId, BuildingTypes _buildingType) internal view returns (BuildingPlacement storage) {
+        VillageBuildingId storage buildingId = buildingIds[_villageId][_buildingType];
+        require(buildingId.exists, 'Building not yet built!');
+        return villages[_villageId].buildings[buildingId.id];
     }
 
     function setMapSize(uint _mapSize) external onlyOwner {
@@ -120,7 +134,7 @@ contract VillageGame is Ownable {
     function _placeBuilding(uint _villageId, BuildingTypes _buildingType, uint8 _x, uint8 _y) internal {
         Village storage village = villages[_villageId];
         // Make sure the building doesn't already exist
-        require(_getBuildingLevel(_villageId, _buildingType) == 0, 'This type of building has already been built');
+        require(!_villageHasBuilding(_villageId, _buildingType), 'This type of building has already been built');
         uint8 size = buildingSizes[_buildingType];
         // Make sure the building size was correctly retrieved
         require(size > 0, 'Error, invalid building size. Check building type parameter.');
@@ -139,8 +153,11 @@ contract VillageGame is Ownable {
             size: size,
             level: 1,
             upgradeCompleteTime: uint32(block.timestamp),
-            buildingType: _buildingType
+            buildingType: _buildingType,
+            exists: true
         }));
+        uint buildingId = village.buildings.length - 1;
+        buildingIds[_villageId][_buildingType] = VillageBuildingId(buildingId, true);
         emit NewBuilding(_villageId, _buildingType, _x, _y);
     }
 
@@ -148,9 +165,29 @@ contract VillageGame is Ownable {
 
     }
 
+    function _getGoldMinedPerBlock(uint _villageId) internal view returns (uint goldMinedPerBlock) {
+
+    }
+
+    function _getGoldMaxStorageAmount(uint _villageId) internal view returns (uint storageAmount) {
+        
+    }
+
+    function _getGoldMineableAmount(uint _villageId) internal view returns (uint mineableAmount) {
+
+    }
+
+    function _mineGold(uint _villageId) internal {
+        
+    }
+
     function getVillage(uint _villageId) public view returns (Village memory village) {
         village = villages[_villageId];
         require(village.exists == true, 'village ID does not exist');
+    }
+
+    function setVillageGoldContract(address _contractAddress) public onlyOwner {
+        villageGoldContract = _contractAddress;
     }
 
     // // function getByCoordinates(int _x, int _y, int _size) public view returns (int[]) {

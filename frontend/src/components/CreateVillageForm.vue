@@ -1,7 +1,5 @@
 <template>
   <div>
-    <h2>Create village</h2>
-
     <div>
       <b-form inline @submit="onSubmit">
 
@@ -56,8 +54,8 @@ export default class CreateVillageForm extends Vue {
 
   form = {
     name: '',
-    x: this.x || 0,
-    y: this.y || 0,
+    x: 0,
+    y: 0,
   };
 
   get contract() {
@@ -85,6 +83,12 @@ export default class CreateVillageForm extends Vue {
     this.form.name = '';
     this.form.x = 0;
     this.form.y = 0;
+  }
+
+  constructor() {
+    super();
+    this.form.x = this.x || 0;
+    this.form.y = this.y || 0;
   }
 }
 </script>

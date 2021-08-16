@@ -3,7 +3,13 @@ async function main() {
   VillageNft = await ethers.getContractFactory('VillageNft');
   villageNft = await VillageNft.deploy();
 
-  console.log(`VUE_APP_CONTRACT_ADDRESS=${villageNft.address}`);
+  VillageGold = await ethers.getContractFactory('VillageGold');
+  villageGold = await VillageGold.deploy();
+
+  await villageGold.setVillageNftContract(villageNft.address);
+
+  console.log(`VUE_APP_NFT_CONTRACT_ADDRESS=${villageNft.address}`);
+  console.log(`VUE_APP_GOLD_CONTRACT_ADDRESS=${villageGold.address}`);
 }
 
 main()

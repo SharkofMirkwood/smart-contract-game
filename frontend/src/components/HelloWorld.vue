@@ -2,6 +2,9 @@
   <div class="village-map-page">
 
     <b-modal id="create-village-modal">
+      <template #modal-title>
+        Create Village
+      </template>
       <CreateVillageForm :x="selectedX" :y="selectedY" @success="onVillageCreate"></CreateVillageForm>
     </b-modal>
 

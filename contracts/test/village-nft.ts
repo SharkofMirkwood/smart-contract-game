@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { expect, should } from 'chai';
 import { ethers } from 'hardhat';
 import { Contract, ContractFactory, Signer } from 'ethers';
 
@@ -134,7 +134,7 @@ describe('VillageNft', () => {
       const result = await villageNft.connect(alice).createVillage(villageName, 0, 0);
       const receipt = await result.wait();
       villageId = receipt.events.filter((x: any) => x.event === 'NewVillage')[0].args.villageId.toNumber();
-    })
+    });
 
     it('should place a building at 0, 0', async () => {
       const result = await villageNft.connect(alice).placeBuilding(villageId, 0, 0, 0);
@@ -190,7 +190,7 @@ describe('VillageNft', () => {
       expect(receipt.status).to.eql(1);
       expect(receipt.events[0].event).to.eql('NewBuilding');
 
-      const txn = villageNft.connect(alice).placeBuilding(villageId, 0, 1, 2);
+      const txn = villageNft.connect(alice).placeBuilding(villageId, 1, 1, 2);
       await expect(txn).to.be.revertedWith('Clashes with existing building');
     });
 
@@ -281,6 +281,37 @@ describe('VillageNft', () => {
       expect(bobBalance.toNumber()).to.eql(1);
     });
 
+  });
+
+  describe('mining', () => {
+    let VillageGold: ContractFactory;
+    let villageGold: Contract;
+
+    before(async () => {
+      VillageGold = await ethers.getContractFactory('VillageGold');
+      villageGold = await VillageGold.deploy(10000);
+      await villageGold.deployed();
+    });
+  
+    it('should not allow mining of a village belonging to a different address', async () => {
+
+    });
+  
+    it('should not allow mining if the mine has not been built', async () => {
+
+    });
+  
+    it('should mine gold if the mine has one block of Gold to mine, and send the gold to the address of the owner of the village', async () => {
+
+    });
+  
+    it('should mine gold if there are multiple blocks to mine', async () => {
+
+    });
+  
+    it('should only mine the maximum storage amount if the capacity of the village has been reached', async () => {
+
+    });
   });
   
 });

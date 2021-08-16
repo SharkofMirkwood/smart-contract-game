@@ -1,7 +1,7 @@
 <template>
   <div>
     <b-navbar toggleable="lg" type="dark" variant="dark">
-        <b-navbar-brand href="#">---</b-navbar-brand>
+        <b-navbar-brand href="#" class="navbar-brand-title">Village Game</b-navbar-brand>
 
         <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
@@ -18,6 +18,11 @@
                 <b-button size="sm" class="my-2 my-sm-0" type="submit">Find</b-button>
             </b-nav-form>
 
+            <div class="gold-balance">
+              <FontAwesomeIcon icon="coins" fixed-width></FontAwesomeIcon>
+              &nbsp;<span>0</span>
+            </div>
+
             <b-button v-if="ethAccountAccessed" pill variant="primary">{{ ethAddress }}</b-button>
             <b-button v-if="!ethAccountAccessed" pill variant="primary" @click="requestEthAccount">Connect</b-button>
 
@@ -33,6 +38,32 @@
     </b-navbar>
 </div>
 </template>
+
+<style lang="scss">
+.navbar-brand.navbar-brand-title {
+  font-family: 'MedievalSharp', cursive;
+  margin-top: -20px;
+  margin-bottom: -20px;
+  font-size: 45px;
+  text-shadow: 5px 0px 10px #2c251b;
+}
+
+.gold-balance {
+  font-weight: bold;
+  padding: 10px;
+  @media only screen and (min-width: 992px) {
+    background: url('../assets/backgrounds/wood.png'), #7c4029;padding: 10px;
+    border: 1px solid rgba(255,255,255,0.4);
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    margin-top: -17px;
+    padding-top: 26px;
+    margin-bottom: -3px;
+    margin-right: 20px;
+    margin-left: 20px;
+  }
+}
+</style>
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';

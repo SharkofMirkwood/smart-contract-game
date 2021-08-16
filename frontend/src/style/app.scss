@@ -4,6 +4,7 @@
 
 // Then import Bootstrap an BootstrapVue SCSS files (order is important)
 // @import './darkly_variables.scss';
+@import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Roboto&display=swap');
 @import './_variables.scss';
 @import 'node_modules/bootstrap/scss/bootstrap.scss';
 @import 'node_modules/bootstrap-vue/src/index.scss';
@@ -11,7 +12,13 @@
 
 html, body {
   height: 100%;
-  background: radial-gradient($gray-900, darken($gray-900, 10%));
+  background-image: url('../assets/backgrounds/wood.png');
+  background-color: radial-gradient($gray-900, darken($gray-900, 10%));
+  background: url('../assets/backgrounds/wood.png'), radial-gradient($gray-800, darken($gray-800, 20%));
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: 'MedievalSharp', cursive;
 }
 
 .fancy-border {
@@ -20,8 +27,18 @@ html, body {
 }
 
 .modal-content {
-  padding: 10px;
+  padding: 15px;
   border: none;
+  color: $gray-900;
+  .modal-header, .modal-body, .modal-footer {
+    margin: -6px;
+  }
+  .modal-body {
+    padding: 30px 20px;
+  }
+  .modal-header, .modal-footer {
+    padding: 10px 20px;
+  }
 }
 
 .modal-content::after {

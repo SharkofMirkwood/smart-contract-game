@@ -28,4 +28,8 @@ contract VillageNft is VillageGame, ERC721Enumerable {
         _placeBuilding(_villageId, _buildingType, _x, _y);
     }
 
+    function mineGold(uint _villageId) external onlyOwnerOf(_villageId) {
+        _mineGold(_villageId);
+    }
+
 }

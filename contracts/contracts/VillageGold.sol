@@ -6,18 +6,18 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 
 contract VillageGold is ERC20, Ownable {
 
-  address villageNftContract;
+  address villageNftAddress;
 
   constructor(uint256 initialSupply) ERC20('VillageGold', 'VGLD') {
     _mint(msg.sender, initialSupply);
   }
 
-  function setVillageNftContract(address _contractAddress) public onlyOwner {
-    villageNftContract = _contractAddress;
+  function setVillageNftAddress(address _contractAddress) public onlyOwner {
+    villageNftAddress = _contractAddress;
   }
 
-  function sendMiningReward(uint amount, address receiver) public {
-    require(msg.sender == villageNftContract, 'Only village NFT contract allowed');
+  function sendMiningReward(address receiver, uint amount) public {
+    require(msg.sender == villageNftAddress, 'Only village NFT contract allowed');
     _mint(receiver, amount);
   }
 }

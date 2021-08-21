@@ -1,10 +1,14 @@
 import { expect, should } from 'chai';
 import { ethers } from 'hardhat';
 import { Contract, ContractFactory, Signer } from 'ethers';
+const { formatUnits } = ethers.utils;
 
 describe('VillageNft', () => {
   let VillageNft: ContractFactory;
   let villageNft: Contract;
+
+  let VillageGold: ContractFactory;
+  let villageGold: Contract;
 
   let owner: Signer;
   let alice: Signer;
@@ -16,6 +20,13 @@ describe('VillageNft', () => {
     VillageNft = await ethers.getContractFactory('VillageNft');
     villageNft = await VillageNft.deploy();
     await villageNft.deployed();
+
+    VillageGold = await ethers.getContractFactory('VillageGold');
+    villageGold = await VillageGold.deploy(10000);
+    await villageGold.deployed();
+    await villageNft.setVillageGoldContract(villageGold.address);
+    await villageGold.setVillageNftAddress(villageNft.address);
+
     [owner, alice, bob] = await ethers.getSigners();
   });
 
@@ -214,7 +225,7 @@ describe('VillageNft', () => {
       expect(result.size).to.eql(5);
       expect(result.baseGoldRate).to.eql(100);
       expect(result.name).to.eql(villageName);
-      expect(result.stats.toNumber()).to.be.greaterThan(0);
+      expect(`${result.stats}`).to.have.length.greaterThan(0);
       expect(`${result.stats}`).to.have.length.lessThanOrEqual(16);
 
       expect(result.buildings).to.have.length(1);
@@ -284,33 +295,76 @@ describe('VillageNft', () => {
   });
 
   describe('mining', () => {
-    let VillageGold: ContractFactory;
-    let villageGold: Contract;
+    let villageIdWithoutMine: number;
+    let villageIdWithMine: number;
+    
+    beforeEach(async () => {
+      const result = await villageNft.connect(alice).createVillage(villageName, 0, 0);
+      const receipt = await result.wait();
+      villageIdWithoutMine = receipt.events.filter((x: any) => x.event === 'NewVillage')[0].args.villageId.toNumber();
 
-    before(async () => {
-      VillageGold = await ethers.getContractFactory('VillageGold');
-      villageGold = await VillageGold.deploy(10000);
-      await villageGold.deployed();
+      const result2 = await villageNft.connect(alice).createVillage(`${villageName}2`, 0, 1);
+      const receipt2 = await result2.wait();
+      villageIdWithMine = receipt2.events.filter((x: any) => x.event === 'NewVillage')[0].args.villageId.toNumber();
+      await villageNft.connect(alice).placeBuilding(villageIdWithMine, 0, 0, 0);
+      await villageNft.connect(alice).placeBuilding(villageIdWithMine, 1, 3, 3);
+      for (let i = 0; i < 5; i += 1) {
+        await ethers.provider.send('evm_mine', []);
+      }
     });
   
     it('should not allow mining of a village belonging to a different address', async () => {
-
+      const txn = villageNft.connect(bob).mineGold(villageIdWithMine);
+      await expect(txn).to.be.revertedWith('Not the owner of the village');
     });
   
     it('should not allow mining if the mine has not been built', async () => {
-
+      const txn = villageNft.connect(alice).mineGold(villageIdWithoutMine);
+      await expect(txn).to.be.revertedWith('Mine not yet built');
     });
   
-    it('should mine gold if the mine has one block of Gold to mine, and send the gold to the address of the owner of the village', async () => {
+    it('should get the balance available to mine', async () => {
+      const availableGold = await villageNft.getGoldMineableAmount(villageIdWithMine);
+      expect(formatUnits(availableGold, 'ether')).to.eql('0.21'); 
 
+      const availableGoldNoMine = await villageNft.getGoldMineableAmount(villageIdWithoutMine);
+      expect(formatUnits(availableGoldNoMine, 'ether')).to.eql('0.0'); 
     });
   
-    it('should mine gold if there are multiple blocks to mine', async () => {
+    it('should mine gold if the mine has Gold to mine, and send the gold to the address of the owner of the village', async () => {
+      const goldBalance = await villageGold.balanceOf(alice.getAddress());
+      expect(formatUnits(goldBalance, 'ether')).to.eql('0.0'); 
 
+      const availableGold = await villageNft.getGoldMineableAmount(villageIdWithMine);
+      expect(formatUnits(availableGold, 'ether')).to.eql('0.21'); 
+
+      // FOr some reason a new block is always mined when this is executed; balance below will be higher than when checked above
+      await villageNft.connect(alice).mineGold(villageIdWithMine);
+
+      const newAvailableGold = await villageNft.getGoldMineableAmount(villageIdWithMine);
+      expect(formatUnits(newAvailableGold, 'ether')).to.eql('0.0'); 
+      
+      const newGoldBalance = await villageGold.balanceOf(alice.getAddress());
+      expect(formatUnits(newGoldBalance, 'ether')).to.eql('0.24'); 
     });
   
     it('should only mine the maximum storage amount if the capacity of the village has been reached', async () => {
+      const maxGold = '100.0';
 
+      for (let i = 0; i < 5000; i += 1) {
+        await ethers.provider.send('evm_mine', []);
+      }
+
+      const availableGold = await villageNft.getGoldMineableAmount(villageIdWithMine);
+      expect(formatUnits(availableGold, 'ether')).to.eql(maxGold);
+
+      await villageNft.connect(alice).mineGold(villageIdWithMine);
+
+      const newAvailableGold = await villageNft.getGoldMineableAmount(villageIdWithMine);
+      expect(formatUnits(newAvailableGold, 'ether')).to.eql('0.0');
+      
+      const newGoldBalance = await villageGold.balanceOf(alice.getAddress());
+      expect(formatUnits(newGoldBalance, 'ether')).to.eql(maxGold);
     });
   });
   

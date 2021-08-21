@@ -16,7 +16,7 @@ contract VillageNft is VillageGame, ERC721Enumerable {
     // Mapping from token ID to owner address
     mapping(uint256 => address) private _owners;
 
-    constructor() ERC721('GameLand', 'LND') {
+    constructor() ERC721('VillageToken', 'VLG') {
     }
 
     function createVillage(string memory _name, int8 _x, int8 _y) public returns (uint villageId) {
@@ -26,6 +26,10 @@ contract VillageNft is VillageGame, ERC721Enumerable {
 
     function placeBuilding(uint _villageId, BuildingTypes _buildingType, uint8 _x, uint8 _y) external onlyOwnerOf(_villageId) {
         _placeBuilding(_villageId, _buildingType, _x, _y);
+    }
+
+    function getGoldMineableAmount(uint _villageId) external view returns (uint) {
+        return _getGoldMineableAmount(_villageId);
     }
 
     function mineGold(uint _villageId) external onlyOwnerOf(_villageId) {

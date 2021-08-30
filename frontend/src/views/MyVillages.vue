@@ -34,8 +34,8 @@ export default class MyVillages extends Vue {
 
   villages: Village[] = [];
 
-  get contract() {
-    return this.$store.state.contract;
+  get nftContract() {
+    return this.$store.state.nftContract;
   }
 
   get currentAddress() {
@@ -43,15 +43,15 @@ export default class MyVillages extends Vue {
   }
 
   private async getVillageOfOwnerByIndex(owner: string, index: number): Promise<Village> {
-    const villageId = await this.contract.methods.tokenOfOwnerByIndex(owner, index).call();
-    const village = await this.contract.methods.getVillage(villageId).call();
+    const villageId = await this.nftContract.methods.tokenOfOwnerByIndex(owner, index).call();
+    const village = await this.nftContract.methods.getVillage(villageId).call();
     return new Village(villageId, village);
   }
 
   // @Watch('contract')
   @Watch('currentAddress', { immediate: true })
   private async getMyVillages() {
-    const balance = await this.contract.methods.balanceOf(this.currentAddress).call();
+    const balance = await this.nftContract.methods.balanceOf(this.currentAddress).call();
     console.log('bal', balance);
     this.villages = await Promise.all(
       Array.from({ length: balance }).map(async (x, i) => this.getVillageOfOwnerByIndex(this.currentAddress, i)),

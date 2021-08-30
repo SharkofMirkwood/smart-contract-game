@@ -98,9 +98,7 @@ import { Store } from 'vuex';
 import { AppState } from '../store';
 
 @Component
-export default class HelloWorld extends Vue {
-  @Prop() private msg!: string;
-
+export default class Map extends Vue {
   $store: Store<AppState>;
 
   $router: any;
@@ -117,14 +115,13 @@ export default class HelloWorld extends Vue {
 
   selectedY: number = null;
 
-  get contract() {
-    return this.$store.state.contract;
+  get nftContract() {
+    return this.$store.state.nftContract;
   }
 
   @Watch('contract', { immediate: true })
   private async getVillageMap(): Promise<void> {
     const mapSize = 100;
-    console.log('this.contract.methods', this.contract);
 
     // for (let x = -mapSize; x < mapSize; x += 1) {
     //   for (let y = -mapSize; y < mapSize; y += 1) {
@@ -133,7 +130,7 @@ export default class HelloWorld extends Vue {
     // }
 
     const map: { [key: number]: { [key: number]: number } } = {};
-    const events = await this.contract.getPastEvents('NewVillage', { fromBlock: 'earliest', toBlock: 'latest' });
+    const events = await this.nftContract.getPastEvents('NewVillage', { fromBlock: 'earliest', toBlock: 'latest' });
     /* eslint-disable-next-line no-restricted-syntax */
     for (const event of events) {
       /* eslint-disable-next-line no-underscore-dangle */

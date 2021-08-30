@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import VueRouter, { RouteConfig } from 'vue-router';
 import Home from '../views/Home.vue';
+import Map from '../views/Map.vue';
 import VillageView from '../views/Village.vue';
 import MyVillages from '../views/MyVillages.vue';
 
@@ -11,6 +12,11 @@ const routes: Array<RouteConfig> = [
     path: '/',
     name: 'home',
     component: Home,
+  },
+  {
+    path: '/map',
+    name: 'map',
+    component: Map,
   },
   {
     path: '/village/:villageId',

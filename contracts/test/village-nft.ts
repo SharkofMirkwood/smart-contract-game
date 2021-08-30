@@ -333,19 +333,19 @@ describe('VillageNft', () => {
   
     it('should mine gold if the mine has Gold to mine, and send the gold to the address of the owner of the village', async () => {
       const goldBalance = await villageGold.balanceOf(alice.getAddress());
-      expect(formatUnits(goldBalance, 'ether')).to.eql('0.0'); 
+      expect(formatUnits(goldBalance, 'ether')).to.eql('0.0');
 
       const availableGold = await villageNft.getGoldMineableAmount(villageIdWithMine);
-      expect(formatUnits(availableGold, 'ether')).to.eql('0.21'); 
+      expect(formatUnits(availableGold, 'ether')).to.eql('0.21');
 
       // FOr some reason a new block is always mined when this is executed; balance below will be higher than when checked above
       await villageNft.connect(alice).mineGold(villageIdWithMine);
 
       const newAvailableGold = await villageNft.getGoldMineableAmount(villageIdWithMine);
-      expect(formatUnits(newAvailableGold, 'ether')).to.eql('0.0'); 
+      expect(formatUnits(newAvailableGold, 'ether')).to.eql('0.0');
       
       const newGoldBalance = await villageGold.balanceOf(alice.getAddress());
-      expect(formatUnits(newGoldBalance, 'ether')).to.eql('0.24'); 
+      expect(formatUnits(newGoldBalance, 'ether')).to.eql('0.24');
     });
   
     it('should only mine the maximum storage amount if the capacity of the village has been reached', async () => {
@@ -365,6 +365,14 @@ describe('VillageNft', () => {
       
       const newGoldBalance = await villageGold.balanceOf(alice.getAddress());
       expect(formatUnits(newGoldBalance, 'ether')).to.eql(maxGold);
+    });
+
+    it('should mine faster if the gold mine has a higher level', async () => {
+      // Just check `getGoldMineableAmount` function
+    });
+
+    it('should have a higher capacity if the warehouse has a higher level', async () => {
+      // Just check `getGoldMineableAmount` function
     });
   });
   

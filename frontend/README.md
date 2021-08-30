@@ -1,4 +1,4 @@
-# smart-contract-game
+# My Nifty Town
 
 ## Project setup
 ```

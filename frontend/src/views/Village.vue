@@ -1,13 +1,42 @@
 <template>
 
   <div class="village-page">
+
+    <b-navbar type="dark" class="village-toolbar">
+      <b-navbar-nav>
+        <b-nav-text>
+          Town: {{ village.name }}, owner: {{ owner }}<span v-if="belongsToCurrentUser"> (You)</span>
+        </b-nav-text>
+      </b-navbar-nav>
+
+      <b-navbar-nav class="ml-auto">
+
+        <b-nav-text class="top-nav-info-boxes" v-if="belongsToCurrentUser">
+          <div class="box" v-b-tooltip.hover title="Mineable gold">
+            <FontAwesomeIcon icon="coins" fixed-width></FontAwesomeIcon>
+            {{ goldMineableAmount }}
+          </div>
+          <div class="box" v-b-tooltip.hover title="Max storable gold">
+            <FontAwesomeIcon icon="box-open" fixed-width></FontAwesomeIcon>
+            {{ maxStorageAmount }}
+          </div>
+        </b-nav-text>
+
+        <!-- <b-nav-item-dropdown right>
+          <template #button-content>
+            <em>User</em>
+          </template>
+          <b-dropdown-item href="#">Profile</b-dropdown-item>
+          <b-dropdown-item href="#">Sign Out</b-dropdown-item>
+        </b-nav-item-dropdown> -->
+      </b-navbar-nav>
+    </b-navbar>
     <div v-if="!village">
       Village not found!
     </div>
     <div v-if="village">
-      <div>VILLAGE: {{ village.name }}</div>
 
-      <div>
+      <div v-if="belongsToCurrentUser">
         <b-button @click="setCurrentlyPlacing(BuildingTypes.TownHall)">Town Hall</b-button>
         <b-button @click="setCurrentlyPlacing(BuildingTypes.GoldMine)">Gold Mine</b-button>
         <b-button @click="setCurrentlyPlacing(BuildingTypes.AdventurerHall)">Adventurer Hall</b-button>
@@ -15,74 +44,108 @@
 
       <br />
 
-      <div class="village-outer-container">
-        <div class="village-container">
-          <div class="background" v-bind:style="{ 'min-height': `${tiles.length}%` }"></div>
-          <village-tile
-              v-for="(obj, index) of grassTiles"
-              v-bind:key="`grasstile_${index}`"
-              :x="obj.x"
-              :y="obj.y"
-              :width="tileWidth"
-              :height="tileHeight"
-              :canBePlaced="false"
-              :imageSrc="require(`@/assets/map/terrain_cropped/grass_0${village.grassType}.png`)"
-            >
-          </village-tile>
-          <village-tile
-              v-for="(obj, index) of tiles"
-              v-bind:key="`tile_${index}`"
-              :x="obj.x"
-              :y="obj.y"
-              :width="tileWidth"
-              :height="tileHeight"
-              :highlighted="isTileHighlighted(obj.x, obj.y)"
-              :hasBuilding="hasBuilding(obj.x, obj.y)"
-              :outOfBounds="currentTileOutOfBounds"
-              :canBePlaced="canBePlaced(obj.x, obj.y)"
-              v-on:on-click="tileClicked"
-              v-on:on-mouse-over="onMouseOverTile"
-              v-on:on-mouse-leave="onMouseLeaveTile"
-              :imageSrc="require(`@/assets/map/terrain_cropped/ground_0${village.groundType}.png`)"
-            >
-          </village-tile>
-          <village-building
-              v-for="(obj, index) of village.buildings"
-              v-bind:key="`building_${index}`"
-              :x="obj.x"
-              :y="obj.y"
-              :width="obj.size"
-              :height="obj.size"
-              :tileWidth="tileWidth"
-              :tileHeight="tileHeight"
-              :imageSrc="obj.building.image"
-              v-on:on-click="buildingClicked"
-            >
-          </village-building>
-          <village-building
-              v-for="(obj, index) of village.decorations"
-              v-bind:key="`decoration_${index}`"
-              :x="obj.x"
-              :y="obj.y"
-              :tileWidth="tileWidth"
-              :tileHeight="tileHeight"
-              :imageWidth="obj.imageWidth"
-              :imageFromBottom="obj.imageFromBottom"
-              :imageFromLeft="obj.imageFromLeft"
-              :imageSrc="obj.imageSrc"
-              :isClickable="false"
-            >
-          </village-building>
-        </div>
-      </div>
+      <b-row>
+        <b-col col sm="12" lg="12">
+          <div class="village-outer-container">
+            <div class="village-container">
+              <div></div>
+              <div class="background" v-bind:style="{ 'min-height': `${tiles.length}%` }"></div>
+              <village-tile
+                  v-for="(obj, index) of grassTiles"
+                  v-bind:key="`grasstile_${index}`"
+                  :x="obj.x"
+                  :y="obj.y"
+                  :width="tileWidth"
+                  :height="tileHeight"
+                  :canBePlaced="false"
+                  :imageSrc="require(`@/assets/map/terrain_cropped/grass_0${village.grassType}.png`)"
+                >
+              </village-tile>
+              <village-tile
+                  v-for="(obj, index) of tiles"
+                  v-bind:key="`tile_${index}`"
+                  :x="obj.x"
+                  :y="obj.y"
+                  :width="tileWidth"
+                  :height="tileHeight"
+                  :highlighted="isTileHighlighted(obj.x, obj.y)"
+                  :hasBuilding="hasBuilding(obj.x, obj.y)"
+                  :outOfBounds="currentTileOutOfBounds"
+                  :canBePlaced="canBePlaced(obj.x, obj.y)"
+                  v-on:on-click="tileClicked"
+                  v-on:on-mouse-over="onMouseOverTile"
+                  v-on:on-mouse-leave="onMouseLeaveTile"
+                  :imageSrc="require(`@/assets/map/terrain_cropped/ground_0${village.groundType}.png`)"
+                >
+              </village-tile>
+              <village-building
+                  v-for="(obj, index) of village.buildings"
+                  v-bind:key="`building_${index}`"
+                  :x="obj.x"
+                  :y="obj.y"
+                  :width="obj.size"
+                  :height="obj.size"
+                  :tileWidth="tileWidth"
+                  :tileHeight="tileHeight"
+                  :imageSrc="obj.building.image"
+                  v-on:on-click="buildingClicked"
+                >
+              </village-building>
+              <village-building
+                  v-for="(obj, index) of village.decorations"
+                  v-bind:key="`decoration_${index}`"
+                  :x="obj.x"
+                  :y="obj.y"
+                  :tileWidth="tileWidth"
+                  :tileHeight="tileHeight"
+                  :imageWidth="obj.imageWidth"
+                  :imageFromBottom="obj.imageFromBottom"
+                  :imageFromLeft="obj.imageFromLeft"
+                  :imageSrc="obj.imageSrc"
+                  :isClickable="false"
+                >
+              </village-building>
+            </div>
+          </div>
+        </b-col>
+
+        <!-- <b-col>
+          <b-card style="">
+
+          </b-card>
+        </b-col> -->
+      </b-row>
     </div>
 
   </div>
 </template>
 
 <style lang="scss">
+nav.village-toolbar {
+  margin-top: -20px;
+  margin-left: -20px;
+  margin-right: -20px;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  margin-bottom: 20px;
+  background-color: rgba(170, 147, 115, 0.8);
+}
 .village-page {
   // height: 100%;
+  .top-nav-info-boxes {
+    // border: 1px solid #d2c6b5;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.2);
+    .box {
+      display: inline-block;
+      padding-left: 10px;
+      padding-right: 10px;
+      border-right: 1px solid rgba(255, 255, 255, 0.6);
+      &:last-of-type {
+        border-right: none;
+      }
+    }
+  }
 }
 .village-outer-container {
   height: 100%;
@@ -90,17 +153,21 @@
   position: relative;
   width: 100%;
   padding-bottom: 60%;
+  border: 2px solid #6f5d43;
 }
 .village-container {
   position: absolute;
   width: 100%;
   height: 82%;
   .background {
-    background-color: rgba(81, 138, 81, 0.8);
+    background-color: #b7a48980;
+    // background-color: rgba(81, 138, 81, 0.8);
     padding-top: 100%;
     position: absolute;
     width: 100%;
     margin-bottom: 20px;
+    // border: 25px solid #6f5d43;
+    // border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='75' height='75'%3E%3Cg fill='none' stroke='%23856f50' stroke-width='2'%3E%3Cpath d='M1 1h73v73H1z'/%3E%3Cpath d='M8 8h59v59H8z'/%3E%3Cpath d='M8 8h16v16H8zM51 8h16v16H51zM51 51h16v16H51zM8 51h16v16H8z'/%3E%3C/g%3E%3Cg fill='%23856f50'%3E%3Ccircle cx='16' cy='16' r='2'/%3E%3Ccircle cx='59' cy='16' r='2'/%3E%3Ccircle cx='59' cy='59' r='2'/%3E%3Ccircle cx='16' cy='59' r='2'/%3E%3C/g%3E%3C/svg%3E") 25;
   }
 }
 </style>
@@ -111,6 +178,7 @@ import {
 } from 'vue-property-decorator';
 import { Store } from 'vuex';
 import { Contract as Web3Contract } from 'web3-eth-contract';
+import { fromWei } from 'web3-utils';
 import { AppState } from '../store';
 import VillageTile from '../components/VillageTile.vue';
 import VillageBuilding from '../components/VillageBuilding.vue';
@@ -135,6 +203,12 @@ export default class VillageView extends Vue {
   mouseOverX: number = null;
 
   mouseOverY: number = null;
+
+  goldMineableAmount: string = null;
+
+  maxStorageAmount: string = null;
+
+  owner: string = null;
 
   // tiles: any[][];
 
@@ -177,8 +251,13 @@ export default class VillageView extends Vue {
     return this.$store.state.ethAddress;
   }
 
-  get contract(): Web3Contract {
-    return this.$store.state.contract;
+  get nftContract(): Web3Contract {
+    return this.$store.state.nftContract;
+  }
+
+  get belongsToCurrentUser(): boolean {
+    console.log(this.owner, this.currentAddress);
+    return this.owner && this.owner.toLowerCase() === this.currentAddress;
   }
 
   get tileWidth(): number {
@@ -377,8 +456,8 @@ export default class VillageView extends Vue {
   }
 
   async placeBuilding(building: IBuilding, x: number, y: number): Promise<void> {
-    const result = await this.contract.methods.placeBuilding(this.villageId, building.buildingType, x, y).send({ from: this.currentAddress });
-    return this.getVillage(this.villageId);
+    const result = await this.nftContract.methods.placeBuilding(this.villageId, building.buildingType, x, y).send({ from: this.currentAddress });
+    return this.updateVillage(this.villageId);
   }
 
   onMouseOverTile(x: number, y: number): void {
@@ -399,15 +478,24 @@ export default class VillageView extends Vue {
   }
 
   @Watch('villageId', { immediate: true })
-  async getVillage(villageId: string): Promise<void> {
+  async updateVillage(villageId: string): Promise<void> {
     console.log('vid', villageId);
     try {
-      const village = await this.contract.methods.getVillage(villageId).call();
+      const [village, goldMineable, maxStorage, owner] = await Promise.all([
+        this.nftContract.methods.getVillage(villageId).call(),
+        this.nftContract.methods.getGoldMineableAmount(villageId).call(),
+        this.nftContract.methods.getGoldMaxStorageAmount(villageId).call(),
+        this.nftContract.methods.ownerOf(villageId).call(),
+      ]);
       this.village = new Village(villageId, village);
+      this.goldMineableAmount = fromWei(goldMineable);
+      this.maxStorageAmount = fromWei(maxStorage);
+      this.owner = owner;
       console.log('vill', this.village);
     } catch (e: any) {
       console.error(e);
       this.village = null;
+      this.goldMineableAmount = null;
     }
   }
 }

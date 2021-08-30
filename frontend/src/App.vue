@@ -2,12 +2,11 @@
   <div id="app">
     <Navbar />
     <b-container>
-      <b-card style="margin-top: 20px;">
-
-      <b-aspect aspect="1.6" v-if="$store.state.contract">
-        <router-view />
-      </b-aspect>
-  </b-card>
+      <div class="main-container" style="margin-top: 20px;">
+        <b-aspect aspect="1.6" v-if="$store.state.nftContract">
+          <router-view />
+        </b-aspect>
+      </div>
     </b-container>
   </div>
 </template>

@@ -58,8 +58,8 @@ export default class CreateVillageForm extends Vue {
     y: 0,
   };
 
-  get contract() {
-    return this.$store.state.contract;
+  get nftContract() {
+    return this.$store.state.nftContract;
   }
 
   get currentAddress() {
@@ -73,7 +73,7 @@ export default class CreateVillageForm extends Vue {
   }
 
   async createVillage(name: string, x: number, y: number) {
-    const result = await this.contract.methods.createVillage(name, x, y).send({ from: this.currentAddress });
+    const result = await this.nftContract.methods.createVillage(name, x, y).send({ from: this.currentAddress });
     console.log('result', result);
     this.resetForm();
     this.$emit('success', parseInt(result.events.NewVillage.returnValues.villageId, 10));

@@ -1,13 +1,14 @@
 <template>
   <div>
     <b-navbar toggleable="lg" type="dark" variant="dark">
-        <b-navbar-brand href="#" class="navbar-brand-title">Village Game</b-navbar-brand>
+        <b-navbar-brand href="#" class="navbar-brand-title">My Nifty Town</b-navbar-brand>
 
         <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
         <b-collapse id="nav-collapse" is-nav>
         <b-navbar-nav>
             <b-nav-item to="/">Home</b-nav-item>
+            <b-nav-item to="/map">Map</b-nav-item>
             <b-nav-item to="/my-villages">My Villages</b-nav-item>
         </b-navbar-nav>
 
@@ -20,7 +21,7 @@
 
             <div class="gold-balance">
               <FontAwesomeIcon icon="coins" fixed-width></FontAwesomeIcon>
-              &nbsp;<span>0</span>
+              &nbsp;<span>{{ goldBalanceDisplay }}</span>
             </div>
 
             <b-button v-if="ethAccountAccessed" pill variant="primary">{{ ethAddress }}</b-button>
@@ -56,8 +57,8 @@
     border: 1px solid rgba(255,255,255,0.4);
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
-    margin-top: -17px;
-    padding-top: 26px;
+    margin-top: -21px;
+    padding-top: 28px;
     margin-bottom: -3px;
     margin-right: 20px;
     margin-left: 20px;
@@ -66,7 +67,7 @@
 </style>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Vue, Watch } from 'vue-property-decorator';
 import { Store } from 'vuex';
 import { AppState } from '../store/index';
 
@@ -75,6 +76,8 @@ export default class Navbar extends Vue {
   $router: any;
 
   private villageId = '';
+
+  goldBalance: number = null;
 
   $store: Store<AppState>;
 
@@ -90,6 +93,17 @@ export default class Navbar extends Vue {
     return this.$store.state.ethAddress;
   }
 
+  get goldContract() {
+    return this.$store.state.goldContract;
+  }
+
+  get goldBalanceDisplay(): string {
+    if (this.goldBalance === null) {
+      return '0.0';
+    }
+    return this.web3.utils.fromWei(this.goldBalance.toString(), 'ether');
+  }
+
   requestEthAccount() {
     this.$store.dispatch('requestEthAccounts');
   }
@@ -97,6 +111,17 @@ export default class Navbar extends Vue {
   onSearch(event: Event): void {
     event.preventDefault();
     this.$router.push({ name: 'view-village', params: { villageId: this.villageId } });
+  }
+
+  @Watch('goldContract', { immediate: true })
+  @Watch('ethAddress', { immediate: true })
+  private async updateGoldBalance() {
+    if (!this.ethAddress || !this.goldContract) {
+      return;
+    }
+    const balance = await this.goldContract.methods.balanceOf(this.ethAddress).call();
+    console.log('gold balance', balance);
+    this.goldBalance = balance;
   }
 }
 </script>

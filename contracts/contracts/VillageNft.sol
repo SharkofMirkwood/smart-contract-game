@@ -32,6 +32,10 @@ contract VillageNft is VillageGame, ERC721Enumerable {
         return _getGoldMineableAmount(_villageId);
     }
 
+    function getGoldMaxStorageAmount(uint _villageId) external view returns (uint) {
+        return _getGoldMaxStorageAmount(_villageId);
+    }
+
     function mineGold(uint _villageId) external onlyOwnerOf(_villageId) {
         _mineGold(_villageId);
     }

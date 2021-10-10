@@ -119,9 +119,12 @@ contract VillageGame is Ownable {
         return villages[_villageId].buildings[buildingId.id];
     }
 
-    function _getNextVillageCost() private view returns (uint) {
-        uint nextId = villageCounter + 1;
-        return 1 ether * 0.00001 * (nextId / 100 + 1) ** 3;
+    function _getNextVillageCost() internal view returns (uint) {
+        return _getVillageCost(villageCounter + 1);
+    }
+
+    function _getVillageCost(uint villageId) internal pure returns (uint) {
+        return 1 ether * 0.0001 * (villageId / 100 + 1) ** 2;
     }
 
     function setMapSize(uint _mapSize) external onlyOwner {

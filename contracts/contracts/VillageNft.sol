@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import '@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
 import './VillageGame.sol';
-import 'hardhat/console.sol';
 
 contract VillageNft is VillageGame, ERC721Enumerable {
 
@@ -19,7 +18,16 @@ contract VillageNft is VillageGame, ERC721Enumerable {
     constructor() ERC721('VillageToken', 'VLG') {
     }
 
-    function createVillage(string memory _name, int8 _x, int8 _y) public returns (uint villageId) {
+    function getVillageCost(uint _villageId) external pure returns (uint) {
+        return _getVillageCost(_villageId);
+    }
+
+    function getNextVillageCost() external view returns (uint) {
+        return _getVillageCost(villageCounter + 1);
+    }
+
+    function createVillage(string memory _name, int8 _x, int8 _y) public payable returns (uint villageId) {
+        require(msg.value >= _getVillageCost(villageCounter + 1), 'Payment too low');
         villageId = _createVillage(_name, _x, _y);
         _mint(msg.sender, villageId);
     }

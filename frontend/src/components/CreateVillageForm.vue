@@ -73,7 +73,9 @@ export default class CreateVillageForm extends Vue {
   }
 
   async createVillage(name: string, x: number, y: number) {
-    const result = await this.nftContract.methods.createVillage(name, x, y).send({ from: this.currentAddress });
+    const value = await this.nftContract.methods.getNextVillageCost().call();
+    console.log('cost', value);
+    const result = await this.nftContract.methods.createVillage(name, x, y).send({ from: this.currentAddress, value });
     console.log('result', result);
     this.resetForm();
     this.$emit('success', parseInt(result.events.NewVillage.returnValues.villageId, 10));

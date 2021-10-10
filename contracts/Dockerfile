@@ -1,13 +1,13 @@
 FROM node:14
 
 WORKDIR /srv
-
-COPY scripts scripts
 COPY package*.json ./
-COPY hardhat.config.ts ./
 COPY tsconfig.json ./
 
 RUN npm ci
+
+COPY scripts scripts
+COPY hardhat.config.ts ./
 
 COPY contracts contracts
 

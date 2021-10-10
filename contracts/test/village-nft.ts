@@ -1,7 +1,7 @@
 import { expect, should } from 'chai';
 import { ethers } from 'hardhat';
-import { Contract, ContractFactory, Signer } from 'ethers';
-const { formatUnits } = ethers.utils;
+import { BigNumber, Contract, ContractFactory, Signer } from 'ethers';
+const { formatUnits, parseEther } = ethers.utils;
 
 describe('VillageNft', () => {
   let VillageNft: ContractFactory;
@@ -16,6 +16,8 @@ describe('VillageNft', () => {
 
   const villageName = 'My village';
 
+  let nextVillageCost: BigNumber;
+
   beforeEach(async () => {
     VillageNft = await ethers.getContractFactory('VillageNft');
     villageNft = await VillageNft.deploy();
@@ -28,51 +30,67 @@ describe('VillageNft', () => {
     await villageGold.setVillageNftAddress(villageNft.address);
 
     [owner, alice, bob] = await ethers.getSigners();
+
+    nextVillageCost = await villageNft.getNextVillageCost();
   });
 
   describe('token creation', () => {
+    it('should fail when payment is too low', async () => {
+      const txn = villageNft.connect(alice).createVillage(villageName, 0, 0);
+      await expect(txn).to.be.revertedWith('Payment too low');
+
+      const txn2 = villageNft.connect(bob).createVillage(villageName, 0, 0, { value: parseEther('0.0000001') });
+      await expect(txn2).to.be.revertedWith('Payment too low');
+
+      const txn3 = villageNft.connect(bob).createVillage(villageName, 0, 0, { value: nextVillageCost.toNumber() - 1 });
+      await expect(txn3).to.be.revertedWith('Payment too low');
+    });
+
+    it('should fail when payment is higher than original cost but the cost has increased', async () => {
+      // TODO
+    });
 
     it('should be able to create a new village token', async () => {
-      const result = await villageNft.connect(alice).createVillage(villageName, 0, 0);
+      const result = await villageNft.connect(alice).createVillage(villageName, 0, 0, { value: nextVillageCost });
       const receipt = await result.wait();
       expect(receipt.status).to.eql(1);
       expect(receipt.events[0].args.name).to.eql(villageName);
     });
 
     it('should allow further villages to be created at different coordinates', async () => {
-      const result1 = await villageNft.connect(alice).createVillage(villageName, 0, 0);
+      const result1 = await villageNft.connect(alice).createVillage(villageName, 0, 0, { value: nextVillageCost });
       const receipt1 = await result1.wait();
       expect(receipt1.status).to.eql(1);
       expect(receipt1.events[0].args.name).to.eql(villageName);
 
-      const result2 = await villageNft.connect(alice).createVillage(villageName, 50, 100);
+      const result2 = await villageNft.connect(alice).createVillage(villageName, 50, 100, { value: nextVillageCost });
       const receipt2 = await result2.wait();
       expect(receipt2.status).to.eql(1);
       expect(receipt2.events[0].args.name).to.eql(villageName);
 
-      const result3 = await villageNft.connect(bob).createVillage('Another village', 100, 100);
+      const result3 = await villageNft.connect(bob).createVillage('Another village', 100, 100, { value: nextVillageCost });
       const receipt3 = await result3.wait();
       expect(receipt3.status).to.eql(1);
       expect(receipt3.events[0].args.name).to.eql('Another village');
     });
 
     it('should fail to create a second token with the same coordinates', async () => {
-      await villageNft.connect(alice).createVillage(villageName, 0, 0);
+      await villageNft.connect(alice).createVillage(villageName, 0, 0, { value: nextVillageCost });
 
-      const txn = villageNft.connect(alice).createVillage(villageName, 0, 0);
+      const txn = villageNft.connect(alice).createVillage(villageName, 0, 0, { value: nextVillageCost });
       await expect(txn).to.be.revertedWith('village already exists at these coordinates');
 
-      const txnBob = villageNft.connect(bob).createVillage(villageName, 0, 0);
+      const txnBob = villageNft.connect(bob).createVillage(villageName, 0, 0, { value: nextVillageCost });
       await expect(txnBob).to.be.revertedWith('village already exists at these coordinates');
     });
 
     it('should fail to create a village at coordinates beyond the size of the map', async () => {
-      await villageNft.connect(alice).createVillage(villageName, 0, 0);
+      await villageNft.connect(alice).createVillage(villageName, 0, 0, { value: nextVillageCost });
 
-      const txn = villageNft.connect(alice).createVillage(villageName, 0, 101);
+      const txn = villageNft.connect(alice).createVillage(villageName, 0, 101, { value: nextVillageCost });
       await expect(txn).to.be.revertedWith('y coordinate out of bounds');
 
-      const txnBob = villageNft.connect(alice).createVillage(villageName, 101, 0);
+      const txnBob = villageNft.connect(alice).createVillage(villageName, 101, 0, { value: nextVillageCost });
       await expect(txnBob).to.be.revertedWith('x coordinate out of bounds');
     });
 
@@ -80,7 +98,7 @@ describe('VillageNft', () => {
 
   describe('transferring tokens', async () => {
     it('should transfer a village NFT', async () => {
-      const result = await villageNft.connect(alice).createVillage(villageName, 0, 0);
+      const result = await villageNft.connect(alice).createVillage(villageName, 0, 0, { value: nextVillageCost });
       const receipt = await result.wait();
       const villageId = receipt.events.filter((x: any) => x.event === 'NewVillage')[0].args.villageId.toNumber();
 
@@ -100,7 +118,7 @@ describe('VillageNft', () => {
 
     describe('two-step transfer scenario', async () => {
       it('should approve and then transfer a village when the approved address calls transferFrom', async () => {
-        const result = await villageNft.connect(alice).createVillage(villageName, 0, 0);
+        const result = await villageNft.connect(alice).createVillage(villageName, 0, 0, { value: nextVillageCost });
         const receipt = await result.wait();
         const villageId = receipt.events.filter((x: any) => x.event === 'NewVillage')[0].args.villageId.toNumber();
   
@@ -115,7 +133,7 @@ describe('VillageNft', () => {
       });
 
       it('should approve and then transfer a village when the owner calls transferFrom', async () => {
-        const result = await villageNft.connect(alice).createVillage(villageName, 0, 0);
+        const result = await villageNft.connect(alice).createVillage(villageName, 0, 0, { value: nextVillageCost });
         const receipt = await result.wait();
         const villageId = receipt.events.filter((x: any) => x.event === 'NewVillage')[0].args.villageId.toNumber();
   
@@ -138,11 +156,52 @@ describe('VillageNft', () => {
   //   });
   // });
 
+  describe('village cost curve', async () => {
+    // let VillageNftTests: ContractFactory;
+    // let villageNftTests: Contract;
+
+    // beforeEach(async () => {
+    //   VillageNftTests = await ethers.getContractFactory('VillageNftTests');
+    //   villageNftTests = await VillageNftTests.deploy();
+    //   await villageNftTests.deployed();
+    // });
+
+    const expectedCosts: { [key: string]: string } = {
+      0: '0.0001',
+      1: '0.0001',
+      10: '0.0001',
+      99: '0.0001',
+      100: '0.0004',
+      199: '0.0004',
+      200: '0.0009',
+      500: '0.0036',
+      999: '0.01',
+      1000: '0.0121',
+      1999: '0.04',
+      2999: '0.09',
+      3999: '0.16',
+      4999: '0.25',
+      5999: '0.36',
+      6999: '0.49',
+      7999: '0.64',
+      9999: '1.0',
+    };
+
+    for (const x of Object.keys(expectedCosts)) {
+      const expectedCost = expectedCosts[x];
+      it(`village at index ${x} should cost ${expectedCost}ETH to mint`, async () => {
+          const result = await villageNft.getVillageCost(x);
+          expect(formatUnits(result, 'ether')).to.eql(expectedCost); 
+      });
+    }
+
+  });
+
   describe('Building placement', () => {
     let villageId: number;
 
     beforeEach(async () => {
-      const result = await villageNft.connect(alice).createVillage(villageName, 0, 0);
+      const result = await villageNft.connect(alice).createVillage(villageName, 0, 0, { value: nextVillageCost });
       const receipt = await result.wait();
       villageId = receipt.events.filter((x: any) => x.event === 'NewVillage')[0].args.villageId.toNumber();
     });
@@ -211,7 +270,7 @@ describe('VillageNft', () => {
     let villageId: number;
 
     beforeEach(async () => {
-      const result = await villageNft.connect(alice).createVillage(villageName, 0, 0);
+      const result = await villageNft.connect(alice).createVillage(villageName, 0, 0, { value: nextVillageCost });
       const receipt = await result.wait();
       villageId = receipt.events[0].args.villageId.toNumber();
       await villageNft.connect(alice).placeBuilding(villageId, 0, 0, 0);
@@ -245,8 +304,8 @@ describe('VillageNft', () => {
 
   describe('balances & enumerability', () => {
     beforeEach(async () => {
-      await villageNft.connect(alice).createVillage(`${villageName}1`, 0, 0);
-      await villageNft.connect(alice).createVillage(`${villageName}2`, 1, 1);
+      await villageNft.connect(alice).createVillage(`${villageName}1`, 0, 0, { value: nextVillageCost });
+      await villageNft.connect(alice).createVillage(`${villageName}2`, 1, 1, { value: nextVillageCost });
     });
 
     it('should return 0 tokens for a user who has not created any', async () => {
@@ -299,11 +358,11 @@ describe('VillageNft', () => {
     let villageIdWithMine: number;
     
     beforeEach(async () => {
-      const result = await villageNft.connect(alice).createVillage(villageName, 0, 0);
+      const result = await villageNft.connect(alice).createVillage(villageName, 0, 0, { value: nextVillageCost });
       const receipt = await result.wait();
       villageIdWithoutMine = receipt.events.filter((x: any) => x.event === 'NewVillage')[0].args.villageId.toNumber();
 
-      const result2 = await villageNft.connect(alice).createVillage(`${villageName}2`, 0, 1);
+      const result2 = await villageNft.connect(alice).createVillage(`${villageName}2`, 0, 1, { value: nextVillageCost });
       const receipt2 = await result2.wait();
       villageIdWithMine = receipt2.events.filter((x: any) => x.event === 'NewVillage')[0].args.villageId.toNumber();
       await villageNft.connect(alice).placeBuilding(villageIdWithMine, 0, 0, 0);

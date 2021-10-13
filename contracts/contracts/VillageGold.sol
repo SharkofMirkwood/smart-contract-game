@@ -8,7 +8,7 @@ contract VillageGold is ERC20, Ownable {
 
   address villageNftAddress;
 
-  constructor(uint256 initialSupply) ERC20('VillageGold', 'VGLD') {
+  constructor(uint256 initialSupply) ERC20('MyNiftyTownGold', 'MNTG') {
     _mint(msg.sender, initialSupply);
   }
 

@@ -129,7 +129,6 @@ contract VillageGame is Ownable {
 
     function setMapSize(uint _mapSize) external onlyOwner {
         require(_mapSize > mapSize, 'New map size must be bigger than old map size');
-        // TODO: Check 'payment'
         mapSize = _mapSize;
     }
 
@@ -153,7 +152,7 @@ contract VillageGame is Ownable {
         // Make sure we are not out of bounds
         require(_x + size <= village.size, 'New placement out of bounds for village size');
         require(_y + size <= village.size, 'New placement out of bounds for village size');
-        // Make sure we don't clash with any other buildings. `size` should be low enough (~1 to 3) that the iteration here hopefully won't be a problem
+        // Make sure we don't clash with any other buildings. `size` will usually be low enough (~1 to 3) that the iteration here hopefully won't get expensive
         for (uint8 i = _x; i < _x + size; i++) {
             for (uint8 j = _y; j < _y + size; j++) {
                 _requireHasNoBuilding(_x, _y, village.buildings);

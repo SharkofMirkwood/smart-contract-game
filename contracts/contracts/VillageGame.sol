@@ -64,8 +64,7 @@ contract VillageGame is Ownable {
 
     uint villageCounter = 1;
 
-    // Building level for each building for each village... should it be an index for the array of the building in the village instead of a level?
-    mapping (uint => mapping (BuildingTypes => VillageBuildingId)) internal buildingIds;
+    mapping (uint => mapping (BuildingTypes => uint)) internal buildingIds;
 
     constructor() {
         buildingSizes[BuildingTypes.TownHall] = 3;
@@ -108,15 +107,17 @@ contract VillageGame is Ownable {
         emit NewVillage(villageId, _name, _x, _y);
     }
 
-    function _villageHasBuilding(uint _villageId, BuildingTypes _buildingType) internal view returns (bool) {
-        VillageBuildingId storage buildingId = buildingIds[_villageId][_buildingType];
-        return buildingId.exists;
-    }
-
-    function _getVillageBuilding(uint _villageId, BuildingTypes _buildingType) internal view returns (BuildingPlacement storage) {
-        VillageBuildingId storage buildingId = buildingIds[_villageId][_buildingType];
-        require(buildingId.exists, 'Building not yet built!');
-        return villages[_villageId].buildings[buildingId.id];
+    function _getVillageBuildingLevel(uint _villageId, BuildingTypes _buildingType) internal view returns (uint) {
+        uint buildingId = buildingIds[_villageId][_buildingType];
+        if (buildingId >= villages[_villageId].buildings.length) {
+            return 0;
+        }
+        BuildingPlacement memory building = villages[_villageId].buildings[buildingId];
+        // Special case where buildingId is 0 only because it was not found in buildingIds
+        if (building.buildingType != _buildingType) {
+            return 0;
+        }
+        return building.level;
     }
 
     function _getNextVillageCost() internal view returns (uint) {
@@ -145,7 +146,7 @@ contract VillageGame is Ownable {
     function _placeBuilding(uint _villageId, BuildingTypes _buildingType, uint8 _x, uint8 _y) internal {
         Village storage village = villages[_villageId];
         // Make sure the building doesn't already exist
-        require(!_villageHasBuilding(_villageId, _buildingType), 'This type of building has already been built');
+        require(_getVillageBuildingLevel(_villageId, _buildingType) < 1, 'This type of building has already been built');
         uint8 size = buildingSizes[_buildingType];
         // Make sure the building size was correctly retrieved
         require(size > 0, 'Error, invalid building size. Check building type parameter.');
@@ -167,8 +168,7 @@ contract VillageGame is Ownable {
             buildingType: _buildingType,
             exists: true
         }));
-        uint buildingId = village.buildings.length - 1;
-        buildingIds[_villageId][_buildingType] = VillageBuildingId(buildingId, true);
+        buildingIds[_villageId][_buildingType] = village.buildings.length - 1;
         emit NewBuilding(_villageId, _buildingType, _x, _y);
     }
 
@@ -177,22 +177,18 @@ contract VillageGame is Ownable {
     }
 
     function _getGoldMinedPerBlock(uint _villageId) internal view returns (uint) {
-        uint goldmineLevel = _getVillageBuilding(_villageId, BuildingTypes.GoldMine).level;
+        uint goldmineLevel = _getVillageBuildingLevel(_villageId, BuildingTypes.GoldMine);
         return 1 ether * 0.03 * goldmineLevel;
     }
 
     function _getGoldMaxStorageAmount(uint _villageId) internal view returns (uint) {
-        VillageBuildingId storage buildingId = buildingIds[_villageId][BuildingTypes.Warehouse];
-        uint warehouseLevel = buildingId.exists ? villages[_villageId].buildings[buildingId.id].level : 0;
+        uint warehouseLevel = _getVillageBuildingLevel(_villageId, BuildingTypes.Warehouse);
         return 1 ether * (100 + 30 * warehouseLevel ** 2);
     }
 
     function _getGoldMineableAmount(uint _villageId) internal view returns (uint) {
         Village memory village = villages[_villageId];
         require(village.exists == true, 'village ID does not exist');
-        if (!_villageHasBuilding(_villageId, BuildingTypes.GoldMine)) {
-            return 0;
-        }
         uint goldPerBlock = _getGoldMinedPerBlock(_villageId);
         uint blocksSinceLastMined = block.number - villages[_villageId].lastMined;
         uint goldToMine = goldPerBlock * blocksSinceLastMined;
@@ -204,7 +200,7 @@ contract VillageGame is Ownable {
     }
 
     function _mineGold(uint _villageId) internal {
-        require(_villageHasBuilding(_villageId, BuildingTypes.GoldMine), 'Mine not yet built');
+        require(_getVillageBuildingLevel(_villageId, BuildingTypes.GoldMine) > 0, 'Mine not yet built');
         uint mineableAmount = _getGoldMineableAmount(_villageId);
 
         Village storage village = villages[_villageId];
